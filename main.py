@@ -4,6 +4,33 @@ import math
 import random
 
 
+# generates a random list of wind turbine coordinates that satisfy the positional constraints:
+# 0<=x<m , 0<=y<n
+# if (x,y) is present, all adjacent coordinates are excluded
+# (x,y) is not in a dead cell
+def generate_random_tuples(list_length, exclusion_list, m , n):
+    # Create a set of unique tuples within the specified range and not violating the adjacency constraint
+    random_tuples = set()
+
+    def is_valid(x, y):
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                if (x + dx, y + dy) in random_tuples:
+                    return False
+        return True
+
+    while len(random_tuples) < list_length:
+        x = random.randint(0, m-1)
+        y = random.randint(0, n-1)
+        new_tuple = (x, y)
+
+        if new_tuple not in exclusion_list and is_valid(x, y):
+            random_tuples.add(new_tuple)
+
+    # Convert the set of tuples back to a list
+    random_list = list(random_tuples)
+    random_list = [(r[0]+0.5,r[1]+0.5) for r in random_list]
+    return random_list
 
 # constants
 POWER_COEFFICIENT = 0.3
@@ -17,7 +44,9 @@ wind_frequency=[1/36]*36
 #constraints
 n, m = 20, 20 # grid size n*m
 dead_cells = [(1, 2), (3, 4), (5, 6)] # example
-WT_max_number = 20
+WT_max_number = 20 # user_defined
+MAX_WT_number = (m//2)*(n//2) - len(dead_cells) # defined by the grid size and spacing constraints
+assert WT_max_number <= MAX_WT_number
 
 #decision variables
 WT_list_length = random.randint(1, WT_max_number+1)
@@ -150,35 +179,7 @@ def draw_grid(n, m, marked_cells, start, direction, width):
 
     return end1,end2
 
-# generates a random list of wind turbine coordinates that satisfy the positional constraints:
-# 0<=x<m , 0<=y<n
-# if (x,y) is present, all adjacent coordinates are excluded
-# (x,y) is not in a dead cell
-def generate_random_tuples(list_length, exclusion_list, m , n):
-    # Create a set of unique tuples within the specified range and not violating the adjacency constraint
-    random_tuples = set()
-
-    def is_valid(x, y):
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                if (x + dx, y + dy) in random_tuples:
-                    return False
-        return True
-
-    while len(random_tuples) < list_length:
-        x = random.randint(0, m-1)
-        y = random.randint(0, n-1)
-        new_tuple = (x, y)
-
-        if new_tuple not in exclusion_list and is_valid(x, y):
-            random_tuples.add(new_tuple)
-
-    # Convert the set of tuples back to a list
-    random_list = list(random_tuples)
-    random_list = [(r[0]+0.5,r[1]+0.5) for r in random_list]
-    return random_list
-
-
+# checks if the power generated in a specific wind direction is above the power threshold constraint
 def satisfies_power_constraint(power_frequency, total_power_no_wake):
   power_threshold = total_power_no_wake*POWER_THRESHOLD_COEFFICIENT
   return all(power > power_threshold for power in power_frequency)
