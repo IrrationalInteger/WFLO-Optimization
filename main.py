@@ -3,6 +3,27 @@ import numpy as np
 import math
 import random
 
+
+
+# constants
+POWER_COEFFICIENT = 0.3
+LAND_COEFFICIENT = 0.3 # coeffecient of the cost of the land
+POWER_THRESHOLD_COEFFICIENT = 0.5
+ALPHA = 0.07
+# variables
+wind_speed = 12
+wind_frequency=[1/36]*36
+
+#constraints
+n, m = 20, 20 # grid size n*m
+dead_cells = [(1, 2), (3, 4), (5, 6)] # example
+WT_max_number = 20
+
+#decision variables
+WT_list_length = random.randint(1, WT_max_number+1)
+WT_list = generate_random_tuples(WT_list_length,dead_cells, m, n) # example : WT_list = [(7.5, 7.5), (9.5, 3.5), (9.5, 9.5), (6.5, 5.5), (4.5, 2.5), (3.5, 0.5), (7.5, 3.5), (5.5, 7.5), (0.5, 2.5), (4.5, 5.5), (8.5, 5.5)]
+print(f"WT_coordinates : {WT_list}")
+
 # used to account for the floating point numbers loss of percision
 def are_floats_equal(num1, num2, epsilon=1e-5):
     """Check if two floating-point numbers are equal within a tolerance."""
@@ -157,24 +178,6 @@ def generate_random_tuples(list_length, exclusion_list, m , n):
     random_list = [(r[0]+0.5,r[1]+0.5) for r in random_list]
     return random_list
 
-# constants
-POWER_COEFFICIENT = 0.3
-LAND_COEFFICIENT = 0.3 # coeffecient of the cost of the land
-POWER_THRESHOLD_COEFFICIENT = 0.5
-ALPHA = 0.07
-# variables
-wind_speed = 12
-wind_frequency=[1/36]*36
-
-#constraints
-n, m = 20, 20 # grid size n*m
-dead_cells = [(1, 2), (3, 4), (5, 6)] # example
-WT_max_number = 20
-
-#decision variables
-WT_list_length = random.randint(1, WT_max_number+1)
-WT_list = generate_random_tuples(WT_list_length,dead_cells, m, n) # example : WT_list = [(7.5, 7.5), (9.5, 3.5), (9.5, 9.5), (6.5, 5.5), (4.5, 2.5), (3.5, 0.5), (7.5, 3.5), (5.5, 7.5), (0.5, 2.5), (4.5, 5.5), (8.5, 5.5)]
-print(f"WT_coordinates : {WT_list}")
 
 def satisfies_power_constraint(power_frequency, total_power_no_wake):
   power_threshold = total_power_no_wake*POWER_THRESHOLD_COEFFICIENT
