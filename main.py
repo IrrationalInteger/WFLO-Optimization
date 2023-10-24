@@ -51,7 +51,7 @@ wind_frequency=[1/36]*36
 
 #constraints
 n, m = 15,15 # grid size n*m
-dead_cells = [(2,2),(11,2),(2,11),(11,11)] # no turbines can be placed in these cells
+dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
 WT_max_number = math.ceil(m/4)*math.ceil(n/4) # user_defined
 MAX_WT_number = math.ceil(m/4)*math.ceil(n/4) # defined by the grid size and spacing constraints
 assert WT_max_number <= MAX_WT_number
@@ -557,6 +557,44 @@ def draw_iterations_against_solution(objective_data,optimal):
 
     # Show the plot
     plt.show()
+
+
+# Test case 1 is run by default
+
+# Uncomment this block for test case 2
+#n,m = 15,15
+#dead_cells = [(2,2),(12,2),(2,12),(12,12)]
+#T_initial = 1000
+#factor = 0.95
+#calculate_T = calculate_T_geometric
+
+# Uncomment this block for test case 3
+#n,m = 20,20
+#dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+#T_initial = 500
+#factor = 1
+#calculate_T = calculate_T_linear
+
+# Uncomment this block for test case 4
+#n,m = 20,20
+#dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+#T_initial = 1000
+#factor = 0.95
+#calculate_T = calculate_T_geometric
+
+# Uncomment this block for test case 5
+#n,m = 25,25
+#dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+#T_initial = 500
+#factor = 1
+#calculate_T = calculate_T_linear
+
+# Uncomment this block for test case 6
+#n,m = 25,25
+#dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+#T_initial = 1000
+#factor = 0.95
+#calculate_T = calculate_T_geometric
 
 
 draw_simulation()
