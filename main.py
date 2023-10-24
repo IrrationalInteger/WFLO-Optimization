@@ -350,40 +350,44 @@ calculate_T = calculate_T_linear # Choice of scheduling function
 
 
 def simulated_annealing():
-  current_solution = WT_list
-  current_fitness,__,_ = objective_function(current_solution,m,n)
-  best_solution = current_solution
-  best_fitness = current_fitness
-  T_current = T_initial
-  objective_vs_N = [float('inf')]*(WT_max_number+1)
-  power_vs_N = [float('inf')]*(WT_max_number+1)
-  objective_vs_I = []
-  optimal_objective_vs_I = []
+  current_solution = WT_list # Initial solution set to the randomized layout
+  current_fitness,__,_ = objective_function(current_solution,m,n) # Initial fitness
+  best_solution = current_solution # Best solution so far
+  best_fitness = current_fitness # Best fitness so far
+  T_current = T_initial # Temperature init
+  objective_vs_N = [float('inf')]*(WT_max_number+1) # Objective vs Number of Turbines for plotting
+  power_vs_N = [float('inf')]*(WT_max_number+1) # Power vs Number of Turbines for plotting
+  objective_vs_I = [] # Objective vs iterations for plotting
+  optimal_objective_vs_I = []# Optimal Objective vs iterations for plotting
   i = 0
   probability = 0
   while T_current > T_final and i <= i_max:
     for j in range(iteration_per_T):
+      # Generate new solution
       new_solution = generate_neighbour_solution(current_solution, dead_cells, m, n)
       new_fitness,new_power,satisfies = objective_function(new_solution,m,n)
       objective_vs_N[len(current_solution)] = new_fitness if objective_vs_N[len(current_solution)]> new_fitness else objective_vs_N[len(current_solution)]
       power_vs_N[len(current_solution)] = new_power if power_vs_N[len(current_solution)]> new_power else power_vs_N[len(current_solution)]
+      # Calculate the delta in fitness
       objective_function_change = new_fitness - current_fitness
-      if objective_function_change < 0:
+      if objective_function_change < 0: # If negative, then improvement: keep this solution
         current_solution = new_solution
         current_fitness = new_fitness
-      else:
+      else: # Else randomize a number from 0 to 1
         random_number = random.uniform(0, 1)
+        # Scale fitness to range of temperature
         objective_function_change_scaled = objective_function_change * fitness_value_scaling_factor
+        # Boltzmann-Gibbs calculation for probability
         probability = math.exp(-objective_function_change_scaled/T_current)
-        if random_number < probability:
+        if random_number < probability: # If greater than random_number then keep
           current_solution = new_solution
           current_fitness = new_fitness
-      if current_fitness < best_fitness and satisfies:
+      if current_fitness < best_fitness and satisfies: # Accept the new solution as optimal iff it has better fitness and also satisifies the power constraint
         best_solution = current_solution
         best_fitness = current_fitness
         ax2.set_title("Best Solution"
                       "\nFitness:" + str(round(best_fitness, 8)))
-
+      # Draw new generation
       plt.pause(0.1)  # Pause to view the updated plot
       ax1.set_title('Generated Solution'
                     '\nTemperature:' + str(T_current)+
