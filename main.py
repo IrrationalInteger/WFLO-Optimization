@@ -51,7 +51,7 @@ wind_frequency=[1/36]*36
 
 #constraints
 n, m = 15,15 # grid size n*m
-dead_cells = [(2,2),(11,2),(2,11),(11,11)] # example
+dead_cells = [(2,2),(11,2),(2,11),(11,11)] # no turbines can be placed in these cells
 WT_max_number = math.ceil(m/4)*math.ceil(n/4) # user_defined
 MAX_WT_number = math.ceil(m/4)*math.ceil(n/4) # defined by the grid size and spacing constraints
 assert WT_max_number <= MAX_WT_number
@@ -292,8 +292,7 @@ def objective_function(WT_coordinates,grid_x,grid_y):
   fitness_value = total_cost / average_total_power
   return fitness_value,average_total_power,satisfies
 
-#print(f"fitness value : {objective_function(WT_list,m,n)}")
-
+# Adds a new turbine while respecting the spacing distance and dead cells
 def add_new_WT(solution, exclusion_list, m , n):
   for i in range(len(solution)):
     solution[i] = (solution[i][0] - 0.5, solution[i][1] - 0.5)
@@ -316,6 +315,9 @@ def add_new_WT(solution, exclusion_list, m , n):
   for i in range(len(solution)):
     solution[i] = (solution[i][0] + 0.5, solution[i][1] + 0.5)
 
+
+# Generates a new solution from the previous one by randomly adding, removing, or moving a single wind turbine while
+# respecting the spacing distance and the dead cells
 def generate_neighbour_solution(solution, exclusion_list, m , n):
   op = random.randint(1, 2) if len(solution) == MAX_WT_number else random.randint(0, 1) if len(solution)==1 else random.randint(0, 2)
   #op = 0
@@ -331,22 +333,21 @@ def generate_neighbour_solution(solution, exclusion_list, m , n):
   return solution
 
 
-
+# Linear scheduling formula
 def calculate_T_linear(T, step):
   return T - step
+# Geometric scheduling formula
 def calculate_T_geometric(T, factor):
     return factor * T
 # SA parameters
-T_initial = 500
-T_final = 0
-iteration_per_T = 2
-i_max = 500
-# Factor used for decreasing temperature
-factor = 1
-# Scaling of fitness for temperature
-fitness_value_scaling_factor = 10000000
-# Scheduling function
-calculate_T = calculate_T_linear
+T_initial = 500 # Initial temperature of annealing
+T_final = 0 # Final temperature of annealing
+iteration_per_T = 2 # The number of solutions generated per temperature
+i_max = 500 # Artificial stopping condition
+factor = 1 # Factor used for decreasing temperature. Used as step for linear and factor for geometric.
+fitness_value_scaling_factor = 10000000 # Scaling of fitness for temperature
+calculate_T = calculate_T_linear # Choice of scheduling function
+
 
 def simulated_annealing():
   current_solution = WT_list
@@ -401,7 +402,7 @@ def simulated_annealing():
     print(f"T_current : {T_current}")
   return best_solution,best_fitness,objective_vs_N,power_vs_N,objective_vs_I,optimal_objective_vs_I
 
-
+# Initializes grid for layout drawing
 def draw_simulation():
     # Create a white grid
     global grid1
@@ -442,6 +443,7 @@ def draw_simulation():
     plt.show(block=False)
     # Function to update grid with new coordinates
 
+# Updates grid with a new turbine layout
 def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
         # Reset the grid to all white with full opacity
         grid[:, :, :3] = 1  # All pixels white
@@ -485,7 +487,7 @@ def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
 
         cax.set_data(grid)  # Update plot data # Update plot data
 
-
+# Plots the number of turbines against the power and objective function during annealing
 def draw_number_of_turbines_against_power_and_objective(power_data,objective_data):
 
     # Clean from float.inf
@@ -527,6 +529,7 @@ def draw_number_of_turbines_against_power_and_objective(power_data,objective_dat
     # Show the plot
     plt.show()
 
+# Plots the number of generated solutions against the objective functino
 def draw_iterations_against_solution(objective_data,optimal):
 
     # Create a figure and a subplot
@@ -553,7 +556,7 @@ def draw_iterations_against_solution(objective_data,optimal):
 
 
 draw_simulation()
-time.sleep(3)
+time.sleep(3) # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
 
 best_solution,best_fitness,objective_vs_N,power_vs_N,objective_vs_I,optimal_objective_vs_I = simulated_annealing()
 
@@ -561,7 +564,5 @@ draw_number_of_turbines_against_power_and_objective(power_vs_N,objective_vs_N)
 draw_iterations_against_solution(objective_vs_I,False)
 draw_iterations_against_solution(optimal_objective_vs_I,True)
 
-print(best_solution)
-print(best_fitness)
-
-
+print("Optimal solution:"+str(best_solution))
+print("Optimal fitness value:"+str(best_fitness))
