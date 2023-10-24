@@ -19,8 +19,10 @@ def generate_random_tuples(list_length, exclusion_list, m , n):
     random_tuples = set()
 
     def is_valid(x, y):
-        if (x , y ) in random_tuples:
-            return False
+        for dx in [-3, -2, -1, 0, 1, 2, 3]:
+            for dy in [-3, -2, -1, 0, 1, 2, 3]:
+                if (x + dx, y + dy) in random_tuples:
+                    return False
         return True
 
     i_max = m * n
@@ -41,21 +43,21 @@ def generate_random_tuples(list_length, exclusion_list, m , n):
 
 # constants
 POWER_COEFFICIENT = 0.3
-POWER_THRESHOLD_COEFFICIENT = 0.98
-ALPHA = 0.23
+POWER_THRESHOLD_COEFFICIENT = 0.9
+ALPHA = 0.1
 # variables
 wind_speed = 12
 wind_frequency=[1/36]*36
 
 #constraints
-n, m = 10,10  # grid size n*m
+n, m = 20,20  # grid size n*m
 dead_cells = [(2,1)] # example
-WT_max_number = n*m - len(dead_cells) # user_defined
-MAX_WT_number = n*m - len(dead_cells) # defined by the grid size and spacing constraints
+WT_max_number = math.ceil(m/2)*math.ceil(n/2) - len(dead_cells)# user_defined
+MAX_WT_number = math.ceil(m/2)*math.ceil(n/2) - len(dead_cells) # defined by the grid size and spacing constraints
 assert WT_max_number <= MAX_WT_number
 
 #decision variables
-WT_list_length = random.randint(1, WT_max_number)
+WT_list_length =  WT_max_number/2
 
 WT_list = generate_random_tuples(WT_list_length,dead_cells, m, n) # example : WT_list = [(7.5, 7.5), (9.5, 3.5), (9.5, 9.5), (6.5, 5.5), (4.5, 2.5), (3.5, 0.5), (7.5, 3.5), (5.5, 7.5), (0.5, 2.5), (4.5, 5.5), (8.5, 5.5)]
 #print(f"WT_coordinates : {WT_list}")
@@ -296,9 +298,10 @@ def add_new_WT(solution, exclusion_list, m , n):
   for i in range(len(solution)):
     solution[i] = (solution[i][0] - 0.5, solution[i][1] - 0.5)
   def is_valid(x, y):
-
-        if (x , y ) in solution:
-            return False
+        for dx in [-3,-2,-1, 0, 1,2,3]:
+            for dy in [-3,-2,-1, 0, 1,2,3]:
+                if (x + dx, y + dy) in solution:
+                    return False
         return True
   i_max = m * n
   i = 0
@@ -355,7 +358,7 @@ def simulated_annealing():
   objective_vs_I = []
   optimal_objective_vs_I = []
   i = 0
-
+  probability = 0
   while T_current > T_final and i <= i_max:
     for j in range(iteration_per_T):
       new_solution = generate_neighbour_solution(current_solution, dead_cells, m, n)
