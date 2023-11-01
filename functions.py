@@ -1,4 +1,3 @@
-
 # generates a random list of wind turbine coordinates that satisfy the positional constraints:
 # 0<=x<m , 0<=y<n
 # if (x,y) is present, all adjacent coordinates are excluded

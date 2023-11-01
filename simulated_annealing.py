@@ -37,8 +37,6 @@ def add_new_WT(solution, exclusion_list, m , n):
 # respecting the spacing distance and the dead cells
 def generate_neighbour_solution(solution, exclusion_list, m , n):
   op = random.randint(1, 2) if len(solution) == MAX_WT_number else random.randint(0, 1) if len(solution)==1 else random.randint(0, 2)
-  #op = 0
-  #print(op)
   solution = solution.copy()
   if op==0: # op = 0, add a WT at random location
     add_new_WT(solution, exclusion_list, m , n)

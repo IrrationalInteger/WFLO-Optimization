@@ -42,8 +42,6 @@ def add_new_WT(solution, exclusion_list, m , n):
 # respecting the spacing distance and the dead cells
 def generate_neighbour_solution(solution, exclusion_list, m , n):
   op = random.randint(1, 2) if len(solution) == MAX_WT_number else random.randint(0, 1) if len(solution)==1 else random.randint(0, 2)
-  #op = 0
-  #print(op)
   solution = solution.copy()
   if op==0: # op = 0, add a WT at random location
     add_new_WT(solution, exclusion_list, m , n)
@@ -100,24 +98,40 @@ def elite_chromosomes(new_population,new_fitness):
         #later REMEMBER DONT DO THIS
         pass
 
-def crossover_chromosomes(new_population,new_fitness):
 
-def mutate_chromosome(new_population,new_fitness):
+def mutate(chromosome):
+    num_of_genes =math.floor((0.25*len(chromosome)) + 0.5)  # Mutate a fourth of the genes
+    for _ in range(num_of_genes):
+        chromosome = generate_neighbour_solution(chromosome,dead_cells,m,n)
+    fitness = objective_function(chromosome, m, n)
+    return chromosome,fitness
 
+
+
+
+def crossover_chromosomes(new_population,new_fitness,population):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        print("Hello")
+def mutate_chromosomes(new_population,new_fitness,population):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        num_of_mutants = math.floor((mutation_percentage * population_size / 100) + 0.5)
+        results = [executor.submit(mutate,population[len(population)-i-1]) for i in range(num_of_mutants)]
+        for f in concurrent.futures.as_completed(results):
+            new_population.append(f.result()[0])
+            new_fitness.append(f.result()[1])
 
 
 def generate_population():
     new_population = []*population_size
     new_fitness = []*population_size
-
-
+    elite_chromosomes(new_population,new_fitness)
     with concurrent.futures.ProcessPoolExecutor() as executor:
-
-
-
+        executor.submit(mutate_chromosomes, new_population, new_fitness,population)
+        executor.submit(crossover_chromosomes, new_population, new_fitness,population)
 
 if __name__ == '__main__':
     init_population()
+    generate_population()
     print(population)
     print(population_fitness)
 
