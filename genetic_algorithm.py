@@ -54,12 +54,12 @@ def generate_neighbour_solution(solution, exclusion_list, m , n):
 
 
 # GA parameters
-population_size = 10 # Population size (number of chromosomes per generation)
+population_size = 100 # Population size (number of chromosomes per generation)
 population = []
 population_fitness = []
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
-crossover_percentage = 70 # Percentage of crossed over chromosomes
-mutation_percentage = 20 # Percentage of mutated chromosomes
+crossover_percentage = 80 # Percentage of crossed over chromosomes
+mutation_percentage = 10 # Percentage of mutated chromosomes
 max_generations = 500 # Maximum number of allowed generations
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
@@ -126,27 +126,27 @@ def uniform_crossover(parents_pair):
     def add_dead_space(cell,lookup_table):
         for dx in list(range(-spacing_distance,spacing_distance+1)):
             for dy in list(range(-spacing_distance,spacing_distance+1)):
-                if m > int(cell[0]+dx) >= 0 and n > int(cell[1] + dy) >= 0:
-                    lookup_table[int(cell[0]+dx)][int(cell[1]+dy)] = 1
+                if m > math.floor(cell[0]+dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
+                    lookup_table[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] = 1
     for i in range(parent_min_length):
         if swap[i] == 0:
-            if lookup_table_1[int(parent1[i][0])][int(parent1[i][1])] == 0:
+            if lookup_table_1[math.floor(parent1[i][0])][math.floor(parent1[i][1])] == 0:
                 child1.append(parent1[i])
                 add_dead_space(parent1[i], lookup_table_1)
             else:
                 child1_error.append(parent1[i])
-            if lookup_table_2[int(parent2[i][0])][int(parent2[i][1])] == 0:
+            if lookup_table_2[math.floor(parent2[i][0])][math.floor(parent2[i][1])] == 0:
                 child2.append(parent2[i])
                 add_dead_space(parent2[i], lookup_table_2)
             else:
                 child2_error.append(parent2[i])
         else:
-            if lookup_table_1[int(parent2[i][0])][int(parent2[i][1])] == 0:
+            if lookup_table_1[math.floor(parent2[i][0])][math.floor(parent2[i][1])] == 0:
                 child1.append(parent2[i])
                 add_dead_space(parent2[i], lookup_table_1)
             else:
                 child1_error.append(parent2[i])
-            if lookup_table_2[int(parent1[i][0])][int(parent1[i][1])] == 0:
+            if lookup_table_2[math.floor(parent1[i][0])][math.floor(parent1[i][1])] == 0:
                 child2.append(parent1[i])
                 add_dead_space(parent1[i], lookup_table_2)
             else:
@@ -155,13 +155,13 @@ def uniform_crossover(parents_pair):
     for i in range(parent_min_length, parent_max_length):
         parent = parent1 if parent_max_length == len(parent1) else parent2
         if swap[i] == 0:
-            if lookup_table_1[int(parent[i][0])][int(parent[i][1])] == 0:
+            if lookup_table_1[math.floor(parent[i][0])][math.floor(parent[i][1])] == 0:
                 child1.append(parent[i])
                 add_dead_space(parent[i], lookup_table_1)
             else:
                 child1_error.append(parent[i])
         else:
-            if lookup_table_2[int(parent[i][0])][int(parent[i][1])] == 0:
+            if lookup_table_2[math.floor(parent[i][0])][math.floor(parent[i][1])] == 0:
                 child2.append(parent[i])
                 add_dead_space(parent[i], lookup_table_2)
             else:
@@ -169,21 +169,86 @@ def uniform_crossover(parents_pair):
 
     for cell in child1_error:
         for (dx, dy) in dead_space_list:
-            if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
-                if lookup_table_1[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
+            if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
+                if lookup_table_1[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] == 0:
                     child1.append((cell[0]+dx, cell[1]+dy))
                     add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_1)
                     break
 
     for cell in child2_error:
         for (dx, dy) in dead_space_list:
-            if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
-                if lookup_table_2[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
+            if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
+                if lookup_table_2[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] == 0:
                     child2.append((cell[0]+dx, cell[1]+dy))
                     add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_2)
                     break
 
     return child1,child2,objective_function(child1,m,n),objective_function(child2,m,n)
+
+
+def one_point_crossover(parents_pair):
+    parent1, parent2 = parents_pair
+    child1 = []
+    child2 = []
+    child1_error = []
+    child2_error = []
+    lookup_table_1 = [[0] * m] * n
+    lookup_table_2 = [[0] * m] * n
+    crossover_point = random.randint(1, m - 1)
+
+    def add_dead_space(cell, lookup_table):
+        for dx in list(range(-spacing_distance,spacing_distance+1)):
+            for dy in list(range(-spacing_distance,spacing_distance+1)):
+                if m > math.floor(cell[0]+dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
+                    lookup_table[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] = 1
+    for cell in parent1:
+        if cell[0] < crossover_point:
+            if lookup_table_1[math.floor(cell[0])][math.floor(cell[1])] == 0:
+                child1.append(cell)
+                add_dead_space(cell, lookup_table_1)
+            else:
+                child1_error.append(cell)
+        else:
+            if lookup_table_2[math.floor(cell[0])][math.floor(cell[1])] == 0:
+                child2.append(cell)
+                add_dead_space(cell, lookup_table_2)
+            else:
+                child2_error.append(cell)
+    for cell in parent2:
+        if cell[0] < crossover_point:
+            if lookup_table_2[math.floor(cell[0])][math.floor(cell[1])] == 0:
+                child2.append(cell)
+                add_dead_space(cell, lookup_table_2)
+            else:
+                child2_error.append(cell)
+        else:
+            if lookup_table_1[math.floor(cell[0])][math.floor(cell[1])] == 0:
+                child1.append(cell)
+                add_dead_space(cell, lookup_table_1)
+            else:
+                child1_error.append(cell)
+
+    for cell in child1_error:
+        for (dx, dy) in dead_space_list:
+            if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
+                if lookup_table_1[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] == 0:
+                    child1.append((cell[0]+dx, cell[1]+dy))
+                    add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_1)
+                    break
+
+    for cell in child2_error:
+        for (dx, dy) in dead_space_list:
+            if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
+                if lookup_table_2[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] == 0:
+                    child2.append((cell[0]+dx, cell[1]+dy))
+                    add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_2)
+                    break
+    if len(child1) == 0:
+        child1 = parent1.copy()
+    if len(child2) == 0:
+        child2 = parent2.copy()
+    return child1,child2,objective_function(child1,m,n),objective_function(child2,m,n)
+
 
 def rank_selection(num_of_parents, population, population_fitness):
     if num_of_parents % 2 != 0:
@@ -215,7 +280,7 @@ def crossover_chromosomes(population, population_fitness):
     with concurrent.futures.ProcessPoolExecutor() as executor:
         num_of_children = math.floor((crossover_percentage * population_size / 100) + 0.5)
         parent_pairs = rank_selection(num_of_children, population, population_fitness)
-        results = [executor.submit(uniform_crossover, parent_pairs[i]) for i in range(len(parent_pairs))]
+        results = [executor.submit(one_point_crossover, parent_pairs[i]) for i in range(len(parent_pairs))]
         for f in concurrent.futures.as_completed(results):
             new_population.append(f.result()[0])
             new_fitness.append(f.result()[2])
