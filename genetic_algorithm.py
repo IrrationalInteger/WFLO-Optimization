@@ -65,6 +65,11 @@ selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
 elitism = True # Preserve the best layout from one generation to the next
 
+
+dead_space_list = [x for x in range(-spacing_distance, spacing_distance+1)]
+dead_space_list = [(x, y) for x in dead_space_list for y in dead_space_list]
+dead_space_list = sorted(dead_space_list, key=lambda x: math.sqrt(abs(x[0])**2 + abs(x[1])**2))
+
 #  Create a new chromosome and calculate its fitness
 def init_chromosome():
     solution = generate_random_tuples(WT_list_length, dead_cells, m, n, spacing_distance)
@@ -162,25 +167,21 @@ def uniform_crossover(parents_pair):
             else:
                 child2_error.append(parent[i])
 
-    dx_list = []
-    for i in range(1, spacing_distance + 1):
-        dx_list.extend([i, -i])
-    dy_list = dx_list.copy()
     for cell in child1_error:
-        for dx in dx_list:
-            for dy in dy_list:
-                if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
-                    if lookup_table_1[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
-                        child1.append((cell[0]+dx, cell[1]+dy))
-                        add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_1)
+        for (dx, dy) in dead_space_list:
+            if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
+                if lookup_table_1[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
+                    child1.append((cell[0]+dx, cell[1]+dy))
+                    add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_1)
+                    break
 
     for cell in child2_error:
-        for dx in dx_list:
-            for dy in dy_list:
-                if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
-                    if lookup_table_2[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
-                        child2.append((cell[0]+dx, cell[1]+dy))
-                        add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_2)
+        for (dx, dy) in dead_space_list:
+            if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
+                if lookup_table_2[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
+                    child2.append((cell[0]+dx, cell[1]+dy))
+                    add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_2)
+                    break
 
     return child1,child2,objective_function(child1,m,n),objective_function(child2,m,n)
 
