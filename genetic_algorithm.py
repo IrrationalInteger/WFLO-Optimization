@@ -54,12 +54,12 @@ def generate_neighbour_solution(solution, exclusion_list, m , n):
 
 
 # GA parameters
-population_size = 1000 # Population size (number of chromosomes per generation)
+population_size = 10 # Population size (number of chromosomes per generation)
 population = []
 population_fitness = []
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
-crossover_percentage = 0 # Percentage of crossed over chromosomes
-mutation_percentage = 90 # Percentage of mutated chromosomes
+crossover_percentage = 70 # Percentage of crossed over chromosomes
+mutation_percentage = 20 # Percentage of mutated chromosomes
 max_generations = 500 # Maximum number of allowed generations
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
@@ -258,10 +258,15 @@ def generate_population():
 
 
 def genetic_algorithm():
+    global population
+    global population_fitness
     init_population()
     for i in range(max_generations):
-        generate_population()
+        new_population, new_fitness = generate_population()
+        population = new_population
+        population_fitness = new_fitness
         print(f'Generation: {i}')
+        print(population_fitness[0])
     return population[0], population_fitness[0]
 
 if __name__ == '__main__':
