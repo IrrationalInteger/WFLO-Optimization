@@ -105,6 +105,7 @@ def elite_chromosomes(new_population,new_fitness):
 
 
 def mutate(chromosome):
+    chromosome = chromosome.copy()
     num_of_genes = max(4,math.floor((0.25*len(chromosome)) + 0.5))  # Mutate a fourth of the genes
     for _ in range(num_of_genes):
         chromosome = generate_neighbour_solution(chromosome,dead_cells,m,n)
