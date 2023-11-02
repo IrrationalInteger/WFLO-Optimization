@@ -81,7 +81,7 @@ def init_population():
 
     combined = list(zip(population, population_fitness))
 
-    combined.sort(key=lambda pair: pair[1])
+    combined.sort(key=lambda pair: pair[1][0])
 
     # Update the original lists in place
     for i, (pop, fitness) in enumerate(combined):
@@ -249,7 +249,7 @@ def generate_population():
             new_fitness.extend(f.result()[1])
 
     combined = list(zip(new_population, new_fitness))
-    combined.sort(key=lambda pair: pair[1])
+    combined.sort(key=lambda pair: pair[1][0])
     # Update the original lists in place
     for i, (pop, fitness) in enumerate(combined):
         new_population[i] = pop
