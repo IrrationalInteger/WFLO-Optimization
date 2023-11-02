@@ -54,14 +54,14 @@ def generate_neighbour_solution(solution, exclusion_list, m , n):
 
 
 # GA parameters
-population_size = 50 # Population size (number of chromosomes per generation)
+population_size = 1000 # Population size (number of chromosomes per generation)
 population = []
 population_fitness = []
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
-crossover_percentage = 60 # Percentage of crossed over chromosomes
-mutation_percentage = 30 # Percentage of mutated chromosomes
-max_generations = 200 # Maximum number of allowed generations
-selection_strategy = 'tour' # Strategy of parent selection
+crossover_percentage = 0 # Percentage of crossed over chromosomes
+mutation_percentage = 90 # Percentage of mutated chromosomes
+max_generations = 500 # Maximum number of allowed generations
+selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
 elitism = True # Preserve the best layout from one generation to the next
 
@@ -81,7 +81,7 @@ def init_population():
 
     combined = list(zip(population, population_fitness))
 
-    combined.sort(key=lambda pair: pair[1],reverse=True)
+    combined.sort(key=lambda pair: pair[1])
 
     # Update the original lists in place
     for i, (pop, fitness) in enumerate(combined):
@@ -100,40 +100,171 @@ def elite_chromosomes(new_population,new_fitness):
 
 
 def mutate(chromosome):
-    num_of_genes =math.floor((0.25*len(chromosome)) + 0.5)  # Mutate a fourth of the genes
+    num_of_genes = max(4,math.floor((0.25*len(chromosome)) + 0.5))  # Mutate a fourth of the genes
     for _ in range(num_of_genes):
         chromosome = generate_neighbour_solution(chromosome,dead_cells,m,n)
     fitness = objective_function(chromosome, m, n)
     return chromosome,fitness
 
 
+def uniform_crossover(parents_pair):
+    parent1, parent2 = parents_pair
+    child1 = []
+    child2 = []
+    child1_error = []
+    child2_error = []
+    lookup_table_1 = [[0]*m]*n
+    lookup_table_2 = [[0] * m] * n
+    parent_min_length = min(len(parent1), len(parent2))
+    parent_max_length = max(len(parent1), len(parent2))
+    swap = [random.randint(0,1) for _ in range(parent_max_length)]
+    def add_dead_space(cell,lookup_table):
+        for dx in list(range(-spacing_distance,spacing_distance+1)):
+            for dy in list(range(-spacing_distance,spacing_distance+1)):
+                if m > int(cell[0]+dx) >= 0 and n > int(cell[1] + dy) >= 0:
+                    lookup_table[int(cell[0]+dx)][int(cell[1]+dy)] = 1
+    for i in range(parent_min_length):
+        if swap[i] == 0:
+            if lookup_table_1[int(parent1[i][0])][int(parent1[i][1])] == 0:
+                child1.append(parent1[i])
+                add_dead_space(parent1[i], lookup_table_1)
+            else:
+                child1_error.append(parent1[i])
+            if lookup_table_2[int(parent2[i][0])][int(parent2[i][1])] == 0:
+                child2.append(parent2[i])
+                add_dead_space(parent2[i], lookup_table_2)
+            else:
+                child2_error.append(parent2[i])
+        else:
+            if lookup_table_1[int(parent2[i][0])][int(parent2[i][1])] == 0:
+                child1.append(parent2[i])
+                add_dead_space(parent2[i], lookup_table_1)
+            else:
+                child1_error.append(parent2[i])
+            if lookup_table_2[int(parent1[i][0])][int(parent1[i][1])] == 0:
+                child2.append(parent1[i])
+                add_dead_space(parent1[i], lookup_table_2)
+            else:
+                child2_error.append(parent1[i])
 
+    for i in range(parent_min_length, parent_max_length):
+        parent = parent1 if parent_max_length == len(parent1) else parent2
+        if swap[i] == 0:
+            if lookup_table_1[int(parent[i][0])][int(parent[i][1])] == 0:
+                child1.append(parent[i])
+                add_dead_space(parent[i], lookup_table_1)
+            else:
+                child1_error.append(parent[i])
+        else:
+            if lookup_table_2[int(parent[i][0])][int(parent[i][1])] == 0:
+                child2.append(parent[i])
+                add_dead_space(parent[i], lookup_table_2)
+            else:
+                child2_error.append(parent[i])
 
-def crossover_chromosomes(new_population,new_fitness,population):
+    dx_list = []
+    for i in range(1, spacing_distance + 1):
+        dx_list.extend([i, -i])
+    dy_list = dx_list.copy()
+    for cell in child1_error:
+        for dx in dx_list:
+            for dy in dy_list:
+                if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
+                    if lookup_table_1[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
+                        child1.append((cell[0]+dx, cell[1]+dy))
+                        add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_1)
+
+    for cell in child2_error:
+        for dx in dx_list:
+            for dy in dy_list:
+                if m > int(cell[0] + dx) >= 0 and n > int(cell[1] + dy) >= 0:
+                    if lookup_table_2[int(cell[0]+dx)][int(cell[1]+dy)] == 0:
+                        child2.append((cell[0]+dx, cell[1]+dy))
+                        add_dead_space((cell[0]+dx, cell[1]+dy), lookup_table_2)
+
+    return child1,child2,objective_function(child1,m,n),objective_function(child2,m,n)
+
+def rank_selection(num_of_parents, population, population_fitness):
+    if num_of_parents % 2 != 0:
+        num_of_parents += 1
+    # Calculate the weights
+    probabilities = [x for x in range(1, len(population) + 1)]
+    probabilities.reverse()
+
+    print(probabilities)
+    # Initialize a list to store pairs of parents for crossover
+    selected_parents = []
+
+    # Perform rank-based selection
+    for _ in range(num_of_parents):
+        new_parent = random.choices(population, weights=probabilities, k=1)
+        selected_parents.append(new_parent[0])
+
+    # Create pairs of parents for crossover
+    parent_pairs = []
+    for i in range(0, len(selected_parents), 2):
+        parent1 = selected_parents[i]
+        parent2 = selected_parents[i + 1]
+        parent_pairs.append((parent1, parent2))
+
+    return parent_pairs
+def crossover_chromosomes(population, population_fitness):
+    new_population = []
+    new_fitness = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        print("Hello")
-def mutate_chromosomes(new_population,new_fitness,population):
+        num_of_children = math.floor((crossover_percentage * population_size / 100) + 0.5)
+        parent_pairs = rank_selection(num_of_children, population, population_fitness)
+        results = [executor.submit(uniform_crossover, parent_pairs[i]) for i in range(len(parent_pairs))]
+        for f in concurrent.futures.as_completed(results):
+            new_population.append(f.result()[0])
+            new_fitness.append(f.result()[2])
+            new_population.append(f.result()[1])
+            new_fitness.append(f.result()[3])
+    if num_of_children % 2 != 0:
+        new_population.pop()
+        new_fitness.pop()
+    return new_population, new_fitness
+
+def mutate_chromosomes(population):
+    new_population = []
+    new_fitness = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
         num_of_mutants = math.floor((mutation_percentage * population_size / 100) + 0.5)
-        results = [executor.submit(mutate,population[len(population)-i-1]) for i in range(num_of_mutants)]
+        results = [executor.submit(mutate, population[len(population)-i-1]) for i in range(num_of_mutants)]
         for f in concurrent.futures.as_completed(results):
             new_population.append(f.result()[0])
             new_fitness.append(f.result()[1])
-
+    return new_population, new_fitness
 
 def generate_population():
     new_population = []*population_size
     new_fitness = []*population_size
     elite_chromosomes(new_population,new_fitness)
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        executor.submit(mutate_chromosomes, new_population, new_fitness,population)
-        executor.submit(crossover_chromosomes, new_population, new_fitness,population)
+        result_mutate = executor.submit(mutate_chromosomes, population)
+        result_crossover = executor.submit(crossover_chromosomes, population,population_fitness)
+        results = [result_mutate, result_crossover]
+        for f in concurrent.futures.as_completed(results):
+            new_population.extend(f.result()[0])
+            new_fitness.extend(f.result()[1])
 
-if __name__ == '__main__':
-    init_population()
-    generate_population()
-    print(population)
-    print(population_fitness)
+    combined = list(zip(new_population, new_fitness))
+    combined.sort(key=lambda pair: pair[1])
+    # Update the original lists in place
+    for i, (pop, fitness) in enumerate(combined):
+        new_population[i] = pop
+        new_fitness[i] = fitness
+    return new_population, new_fitness
+
 
 def genetic_algorithm():
-    pass
+    init_population()
+    for i in range(max_generations):
+        generate_population()
+        print(f'Generation: {i}')
+    return population[0], population_fitness[0]
+
+if __name__ == '__main__':
+    best_population, best_fitness = genetic_algorithm()
+    print(best_population)
+    print(best_fitness)
