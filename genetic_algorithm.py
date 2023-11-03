@@ -113,7 +113,7 @@ def mutate(chromosome):
     return chromosome,fitness
 
 
-def uniform_crossover(parents_pair):
+def uniform_crossover(parents_pair, lookup_table_dead_space_offset):
     parent1, parent2 = parents_pair
     child1 = []
     child2 = []
@@ -169,7 +169,7 @@ def uniform_crossover(parents_pair):
                 child2_error.append(parent[i])
 
     for cell in child1_error:
-        for (dx, dy) in dead_space_list:
+        for (dx, dy) in lookup_table_dead_space_offset:
             if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
                 if lookup_table_1[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] == 0:
                     child1.append((cell[0]+dx, cell[1]+dy))
@@ -177,7 +177,7 @@ def uniform_crossover(parents_pair):
                     break
 
     for cell in child2_error:
-        for (dx, dy) in dead_space_list:
+        for (dx, dy) in lookup_table_dead_space_offset:
             if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
                 if lookup_table_2[math.floor(cell[0]+dx)][math.floor(cell[1]+dy)] == 0:
                     child2.append((cell[0]+dx, cell[1]+dy))
@@ -340,7 +340,7 @@ def genetic_algorithm():
         population = new_population
         population_fitness = new_fitness
         print(f'Generation: {i}')
-        print(population_fitness[0])
+        print(population_fitness)
     return population[0], population_fitness[0]
 
 if __name__ == '__main__':
