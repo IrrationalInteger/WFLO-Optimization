@@ -40,35 +40,35 @@ def add_new_WT(solution, exclusion_list, m , n):
 
 # Generates a new solution from the previous one by randomly adding, removing, or moving a single wind turbine while
 # respecting the spacing distance and the dead cells
-def generate_neighbour_solution(solution, exclusion_list, m , n):
+def generate_neighbour_solution(solution, exclusion_list, m , n, num_of_genes):
   op = random.randint(1, 2) if len(solution) == MAX_WT_number else random.randint(0, 1) if len(solution)==1 else random.randint(0, 2)
   solution = solution.copy()
   if op==0: # op = 0, add a WT at random location
-    add_new_WT(solution, exclusion_list, m , n)
+    for _ in range(num_of_genes):
+        add_new_WT(solution, exclusion_list, m , n)
   elif op==1: # op = 1, change the location of one WT ????
-    solution.pop(random.randint(0,len(solution)-1))
-    add_new_WT(solution, exclusion_list, m , n)
+    for _ in range(num_of_genes):
+        solution.pop(random.randint(0,len(solution)-1))
+        add_new_WT(solution, exclusion_list, m , n)
   else: # op = 2, remove a random WT
-    solution.pop(random.randint(0,len(solution)-1))
+    max_iterations = min(num_of_genes, len(solution)-1)
+    for _ in range(max_iterations):
+        solution.pop(random.randint(0,len(solution)-1))
   return solution
 
 
 # GA parameters
-population_size = 30 # Population size (number of chromosomes per generation)
+population_size = 50 # Population size (number of chromosomes per generation)
 population = []
 population_fitness = []
-survivor_percentage = 20 # Percentage of chromosomes that survive till next generation
-crossover_percentage = 70 # Percentage of crossed over chromosomes
+survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
+crossover_percentage = 80 # Percentage of crossed over chromosomes
 mutation_percentage = 10 # Percentage of mutated chromosomes
 max_generations = 500 # Maximum number of allowed generations
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
 elitism = True # Preserve the best layout from one generation to the next
 
-
-dead_space_list = [x for x in range(-spacing_distance, spacing_distance+1)]
-#dead_space_list = [(x, y) for x in dead_space_list for y in dead_space_list]
-#dead_space_list = sorted(dead_space_list, key=lambda x: math.sqrt(abs(x[0])**2 + abs(x[1])**2))
 
 #  Create a new chromosome and calculate its fitness
 def init_chromosome():
@@ -106,11 +106,10 @@ def elite_chromosomes(new_population,new_fitness):
 
 def mutate(chromosome):
     chromosome = chromosome.copy()
-    num_of_genes = max(4,math.floor((0.25*len(chromosome)) + 0.5))  # Mutate a fourth of the genes
-    for _ in range(num_of_genes):
-        chromosome = generate_neighbour_solution(chromosome,dead_cells,m,n)
+    num_of_genes = 1 # Mutate a fourth of the genes   max(4,math.floor((0.25*len(chromosome)) + 0.5))
+    chromosome = generate_neighbour_solution(chromosome, dead_cells, m, n, num_of_genes)
     fitness = objective_function(chromosome, m, n)
-    return chromosome,fitness
+    return chromosome, fitness
 
 
 def uniform_crossover(parents_pair, lookup_table_dead_space_offset):
@@ -282,7 +281,7 @@ def crossover_chromosomes(population, population_fitness,lookup_table_dead_space
     with concurrent.futures.ProcessPoolExecutor() as executor:
         num_of_children = math.floor((crossover_percentage * population_size / 100) + 0.5)
         parent_pairs = rank_selection(num_of_children, population, population_fitness)
-        results = [executor.submit(one_point_crossover, parent_pairs[i],lookup_table_dead_space_offset) for i in range(len(parent_pairs))]
+        results = [executor.submit(one_point_crossover if random.randint(0, 1) == 0 else uniform_crossover, parent_pairs[i], lookup_table_dead_space_offset) for i in range(len(parent_pairs))]
         for f in concurrent.futures.as_completed(results):
             new_population.append(f.result()[0])
             new_fitness.append(f.result()[2])
@@ -298,9 +297,9 @@ def mutate_chromosomes(population):
     new_fitness = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
         num_of_mutants = math.floor((mutation_percentage * population_size / 100) + 0.5)
-        #probabilities = [x ** 2 for x in range(1, len(population) + 1)]
-        #results = [executor.submit(mutate, random.choices(population, weights=probabilities, k=1)[0]) for i in range(num_of_mutants)]
-        results = [executor.submit(mutate, population[len(population)-i-1]) for i in range(num_of_mutants)]
+        probabilities = [x ** 2 for x in range(1, len(population) + 1)]
+        results = [executor.submit(mutate, random.choices(population, weights=probabilities, k=1)[0]) for i in range(num_of_mutants)]
+        #results = [executor.submit(mutate, population[len(population)-i-1]) for i in range(num_of_mutants)]
         for f in concurrent.futures.as_completed(results):
             new_population.append(f.result()[0])
             new_fitness.append(f.result()[1])
