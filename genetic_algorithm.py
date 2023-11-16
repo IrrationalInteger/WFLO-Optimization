@@ -371,21 +371,21 @@ def genetic_algorithm(visualise):
         print(f'Generation: {i}')
         print(population_fitness)
         print(best_fitness_yet)
-        optimal_objective_vs_I.append(best_fitness_yet)
+        optimal_objective_vs_I.append(best_fitness_yet[0])
 
-    if (visualise):
+    if visualise:
         draw_solution(best_chromosome_yet,dead_cells,m,n)
         draw_iterations_against_solution(optimal_objective_vs_I, True)
     end = time.perf_counter()
 
-    return best_chromosome_yet, best_fitness_yet,end-start
+    return best_chromosome_yet, best_fitness_yet, end-start
 
 
 def multiple_genetic(num_of_times_to_run):
     best_fitnesses = []
     run_time = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.submit(genetic_algorithm(), False) for _ in range(num_of_times_to_run)]
+        results = [executor.submit(genetic_algorithm, False) for _ in range(num_of_times_to_run)]
         for f in concurrent.futures.as_completed(results):
             best_fitnesses.append(f.result()[1])
             run_time.append(f.result()[2])
@@ -413,6 +413,6 @@ def multiple_genetic(num_of_times_to_run):
 
 
 if __name__ == '__main__':
-    best_population, best_fitness = genetic_algorithm(False)
+    best_population, best_fitness, _ = genetic_algorithm(True)
     print(best_population)
     print(best_fitness)

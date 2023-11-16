@@ -76,10 +76,10 @@ def simulated_annealing(visualise):
   objective_vs_N = [float('inf')]*(WT_max_number+1) # Objective vs Number of Turbines for plotting
   power_vs_N = [float('inf')]*(WT_max_number+1) # Power vs Number of Turbines for plotting
   objective_vs_I = [] # Objective vs iterations for plotting
-
+  optimal_objective_vs_I = []  # Optimal Objective vs iterations for plotting
   i = 0
   probability = 0
-  if (visualise):
+  if visualise:
       draw_simulation()
       time.sleep(3)  # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
   while T_current > T_final and i <= i_max:
@@ -106,7 +106,7 @@ def simulated_annealing(visualise):
       if current_fitness < best_fitness and satisfies: # Accept the new solution as optimal iff it has better fitness and also satisifies the power constraint
         best_solution = current_solution
         best_fitness = current_fitness
-      if(visualise):
+      if visualise:
           ax2.set_title("Best Solution"
                       "\nFitness:" + str(round(best_fitness, 8)))
           # Draw new generation

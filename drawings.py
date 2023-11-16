@@ -13,7 +13,7 @@ def draw_solution(solution,dead_cells,m,n):
     grid = np.ones((m, n, 4))
     global ax1,cax
     # Create a figure with two subplots (side by side)
-    fig, ax1 = plt.plot()
+    fig, ax1 = plt.subplots(1, 1)
 
     # Create the initial plots with a color map
     cax = ax1.imshow(grid, cmap='bwr', vmin=0, vmax=1)
@@ -44,25 +44,18 @@ def draw_solution(solution,dead_cells,m,n):
         if 0 <= x < n and 0 <= y < m:
             grid[x, y, :3] = [0.2, 0.2, 0.2]
             grid[x, y, 3] = 1
-    # Define the RGBA values for grey and blue with 50% transparency
-    grey_color = np.array([0.5, 0.5, 0.5, 0.8])
-    red_color = np.array([1, 0, 0, 0.4])
-    blue_color = np.array([0, 0, 1, 0.6])
 
-    # Create a copy of the grid representing the current state
-    current_colors = np.copy(grid)
 
 
     # Apply the new coordinates for blue
-    if (solution != None):
-        for coord in solution:
+    for coord in solution:
             y, x = int(coord[0]), int(coord[1])
             if 0 <= x < n and 0 <= y < m:
+                grid[x, y, :3] = [0, 0, 1]
                 grid[x, y, 3] = 1
 
-                if (np.array_equal(grid[x, y, :3], red_color[:3])):
-                    grid[x, y, :3] = [1, 0, 0]
-                    grid[x, y, 3] = 0.5
+
+
 
 
 
@@ -121,6 +114,7 @@ def draw_iterations_against_solution(objective_data,optimal):
     ax1.set_xlabel('Iterations')
     ax1.set_ylabel('Optimal Objective Function'if optimal else "Generated Objective Function", color=color)
     ax1.tick_params(axis='y', labelcolor=color)
+    print(objective_data)
     ax1.set_ylim(min(objective_data), max(objective_data))  # Set the limits of the left y-axis
     objective_data = [(index, t) for index, t in enumerate(objective_data)]
     objective_x, objective_y = zip(*objective_data)
