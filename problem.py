@@ -21,7 +21,7 @@ assert WT_max_number <= MAX_WT_number
 
 # constants
 POWER_COEFFICIENT = 0.3
-POWER_THRESHOLD_COEFFICIENT = 0.935
+POWER_THRESHOLD_COEFFICIENT = 0.927
 ALPHA = 0.1
 # variables
 wind_speed = 12
@@ -116,3 +116,14 @@ def objective_function(WT_coordinates,grid_x,grid_y):
   print(f"Total cost : {total_cost}")
   fitness_value = total_cost / average_total_power
   return fitness_value,average_total_power,satisfies
+
+
+if __name__ == "__main__":
+  start = time.perf_counter()
+  solution = [(19.5, 13.5), (19.5, 9.5), (19.5, 19.5), (18.5, 0.5), (19.5, 5.5),
+                 (0.5, 8.5), (0.5, 4.5), (0.5, 0.5), (0.5, 19.5), (0.5, 15.5), (8.5, 15.5), (15.5, 15.5),
+                 (11.5, 11.5), (15.5, 9.5), (8.5, 7.5), (14.5, 4.5), (15.5, 19.5), (11.5, 19.5), (4.5, 11.5),
+                 (4.5, 15.5), (4.5, 19.5), (4.5, 4.5), (10.5, 0.5), (14.5, 0.5), (6.5, 0.5)]
+  print(objective_function(solution,m,n))
+  end = time.perf_counter()
+  print(f"Time taken : {end-start}")
