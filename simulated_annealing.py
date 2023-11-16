@@ -1,5 +1,4 @@
-
-# Adds a new turbine while respecting the spacing distance and dead cells
+import concurrent.futures
 import math
 import time
 import random
@@ -9,7 +8,7 @@ from matplotlib import pyplot as plt
 matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells
 
-
+# Adds a new turbine while respecting the spacing distance and dead cells
 def add_new_WT(solution, exclusion_list, m , n):
   for i in range(len(solution)):
     solution[i] = (solution[i][0] - 0.5, solution[i][1] - 0.5)
@@ -58,13 +57,15 @@ def calculate_T_geometric(T, factor):
 T_initial = 500 # Initial temperature of annealing
 T_final = 0 # Final temperature of annealing
 iteration_per_T = 2 # The number of solutions generated per temperature
-i_max = 500 # Artificial stopping condition
+i_max = 250 # Artificial stopping condition
 factor = 1 # Factor used for decreasing temperature. Used as step for linear and factor for geometric.
 fitness_value_scaling_factor = 10000000 # Scaling of fitness for temperature
 calculate_T = calculate_T_linear # Choice of scheduling function
 
 
-def simulated_annealing():
+def simulated_annealing(visualise):
+  #start time
+  start = time.perf_counter()
   current_solution = WT_list # Initial solution set to the randomized layout
   current_fitness,__,_ = objective_function(current_solution,m,n) # Initial fitness
   best_solution = current_solution # Best solution so far
@@ -76,6 +77,9 @@ def simulated_annealing():
   optimal_objective_vs_I = []# Optimal Objective vs iterations for plotting
   i = 0
   probability = 0
+  if (visualise):
+      draw_simulation()
+      time.sleep(3)  # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
   while T_current > T_final and i <= i_max:
     for j in range(iteration_per_T):
       # Generate new solution
@@ -100,17 +104,18 @@ def simulated_annealing():
       if current_fitness < best_fitness and satisfies: # Accept the new solution as optimal iff it has better fitness and also satisifies the power constraint
         best_solution = current_solution
         best_fitness = current_fitness
-        ax2.set_title("Best Solution"
+      if(visualise):
+          ax2.set_title("Best Solution"
                       "\nFitness:" + str(round(best_fitness, 8)))
-      # Draw new generation
-      plt.pause(0.1)  # Pause to view the updated plot
-      ax1.set_title('Generated Solution'
-                    '\nTemperature:' + str(T_current)+
-                    "\nIteration:"+str(j)+
-                    "\nProbability:"+str(round(probability,3))+
-                    "\nFitness:"+str(round(current_fitness,8)))
-      update_grid(grid1,cax1,current_solution,best_solution,True)
-      update_grid(grid2,cax2,None,best_solution,False)
+          # Draw new generation
+          plt.pause(0.1)  # Pause to view the updated plot
+          ax1.set_title('Generated Solution'
+                        '\nTemperature:' + str(T_current)+
+                        "\nIteration:"+str(j)+
+                        "\nProbability:"+str(round(probability,3))+
+                        "\nFitness:"+str(round(current_fitness,8)))
+          update_grid(grid1,cax1,current_solution,best_solution,True)
+          update_grid(grid2,cax2,None,best_solution,False)
 
       print(current_fitness)
       print(current_solution)
@@ -119,7 +124,13 @@ def simulated_annealing():
     T_current = calculate_T(T_current,factor)
     i = i + 1
     print(f"T_current : {T_current}")
-  return best_solution,best_fitness,objective_vs_N,power_vs_N,objective_vs_I,optimal_objective_vs_I
+  if (visualise):
+      draw_number_of_turbines_against_power_and_objective(power_vs_N, objective_vs_N)
+      draw_iterations_against_solution(objective_vs_I, False)
+      draw_iterations_against_solution(optimal_objective_vs_I, True)
+  #end time
+  end = time.perf_counter()
+  return best_solution,best_fitness,objective_vs_N,power_vs_N,objective_vs_I,optimal_objective_vs_I,end-start
 
 
 
@@ -279,11 +290,11 @@ def draw_iterations_against_solution(objective_data,optimal):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-#n,m = 15,15
-#dead_cells = [(2,2),(12,2),(2,12),(12,12)]
-#T_initial = 1000
-#factor = 0.95
-#calculate_T = calculate_T_geometric
+# n,m = 15,15
+# dead_cells = [(2,2),(12,2),(2,12),(12,12)]
+# T_initial = 1000
+# factor = 0.95
+# calculate_T = calculate_T_geometric
 
 # Uncomment this block for test case 3
 #n,m = 20,20
@@ -293,18 +304,18 @@ def draw_iterations_against_solution(objective_data,optimal):
 #calculate_T = calculate_T_linear
 
 # Uncomment this block for test case 4
-#n,m = 20,20
-#dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-#T_initial = 1000
-#factor = 0.95
-#calculate_T = calculate_T_geometric
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# T_initial = 1000
+# factor = 0.95
+# calculate_T = calculate_T_geometric
 
 # Uncomment this block for test case 5
-#n,m = 25,25
-#dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-#T_initial = 500
-#factor = 1
-#calculate_T = calculate_T_linear
+n,m = 25,25
+dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+T_initial = 500
+factor = 1
+calculate_T = calculate_T_linear
 
 # Uncomment this block for test case 6
 #n,m = 25,25
@@ -313,15 +324,37 @@ def draw_iterations_against_solution(objective_data,optimal):
 #factor = 0.95
 #calculate_T = calculate_T_geometric
 
+def multiple_simulated_annealing(num_of_times_to_run):
+    best_fitnesses = []
+    run_time = []
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = [executor.submit(simulated_annealing, False) for _ in range(num_of_times_to_run)]
+        for f in concurrent.futures.as_completed(results):
+            best_fitnesses.append(f.result()[1])
+            run_time.append(f.result()[6])
+    best_fitnesses = np.array(best_fitnesses)
+    run_time = np.array(run_time)
+    # average run time
+    average_run_time = np.mean(run_time)
+    # average best fitness
+    average_best_fitness = np.mean(best_fitnesses)
+    # standard deviation of best fitness
+    std_best_fitness = np.std(best_fitnesses)
+    # best best fitness
+    best_best_fitness = np.min(best_fitnesses)
+    # worst best fitness
+    worst_best_fitness = np.max(best_fitnesses)
+    # coefficient of variation
+    coefficient_of_variation = std_best_fitness / average_best_fitness
+    #print results
+    print(f"Average run time : {average_run_time}")
+    print(f"Average best fitness : {average_best_fitness}")
+    print(f"Standard deviation of best fitness : {std_best_fitness}")
+    print(f"Best best fitness : {best_best_fitness}")
+    print(f"Worst best fitness : {worst_best_fitness}")
+    print(f"Coefficient of variation : {coefficient_of_variation}")
 
-draw_simulation()
-time.sleep(3) # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
+if __name__ == "__main__":
 
-best_solution,best_fitness,objective_vs_N,power_vs_N,objective_vs_I,optimal_objective_vs_I = simulated_annealing()
 
-draw_number_of_turbines_against_power_and_objective(power_vs_N,objective_vs_N)
-draw_iterations_against_solution(objective_vs_I,False)
-draw_iterations_against_solution(optimal_objective_vs_I,True)
-
-print("Optimal solution:"+str(best_solution))
-print("Optimal fitness value:"+str(best_fitness))
+    multiple_simulated_annealing(20)
