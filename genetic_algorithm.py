@@ -95,10 +95,27 @@ def init_population():
 
 def elite_chromosomes(new_population,new_fitness):
     if elitism:
-        num_of_elites = math.floor((survivor_percentage*population_size/100)+0.5)
-        for i in range(num_of_elites):
-            new_population.append(population[i])
-            new_fitness.append(population_fitness[i])
+        elite_population = []
+        half_num_of_elites = math.floor(((survivor_percentage/2)*population_size/100)+0.5)
+        num_of_elites = half_num_of_elites*2
+        chromosomes_added = 0
+        y = 0
+        for y in range(len(population)):
+            if population_fitness[y][2]:
+                new_population.append(population[y])
+                elite_population.append(population[y])
+                new_fitness.append(population_fitness[y])
+                chromosomes_added += 1
+                if chromosomes_added == half_num_of_elites:
+                    break
+        i = 0
+        for i in range(len(population)):
+            if population[i] not in elite_population:
+                new_population.append(population[i])
+                new_fitness.append(population_fitness[i])
+                chromosomes_added += 1
+                if chromosomes_added == num_of_elites:
+                    break
     else:
         #later REMEMBER DONT DO THIS
         pass
@@ -272,6 +289,8 @@ def rank_selection(num_of_parents, population, population_fitness):
     for i in range(0, len(selected_parents), 2):
         parent1 = selected_parents[i]
         parent2 = selected_parents[i + 1]
+        while parent1 == parent2:
+            parent2 = random.choices(population, weights=probabilities, k=1)[0]
         parent_pairs.append((parent1, parent2))
 
     return parent_pairs
@@ -330,6 +349,8 @@ def genetic_algorithm():
     global population
     global population_fitness
     init_population()
+    best_chromosome_yet = population[0]
+    best_fitness_yet = population_fitness[0]
     lookup_table_dead_space_offset_x = [x for x in range(-m, m + 1)]
     lookup_table_dead_space_offset_y = [x for x in range(-n, n + 1)]
     lookup_table_dead_space_offset = [(x, y) for x in lookup_table_dead_space_offset_x for y in lookup_table_dead_space_offset_y]
@@ -338,9 +359,16 @@ def genetic_algorithm():
         new_population, new_fitness = generate_population(lookup_table_dead_space_offset)
         population = new_population
         population_fitness = new_fitness
+        for j in range(len(population)):
+            if population_fitness[j][2]:
+                if population_fitness[j][0] < best_fitness_yet[0]:
+                    best_fitness_yet = population_fitness[j]
+                    best_chromosome_yet = population[j]
+                break
         print(f'Generation: {i}')
         print(population_fitness)
-    return population[0], population_fitness[0]
+        print(best_fitness_yet)
+    return best_chromosome_yet, best_fitness_yet
 
 if __name__ == '__main__':
     best_population, best_fitness = genetic_algorithm()
