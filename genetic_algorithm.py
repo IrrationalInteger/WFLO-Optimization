@@ -341,7 +341,7 @@ population_fitness = []
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
 crossover_percentage = 80 # Percentage of crossed over chromosomes
 mutation_percentage = 10 # Percentage of mutated chromosomes
-max_generations = 200 # Maximum number of allowed generations
+max_generations = 500 # Maximum number of allowed generations
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
 elitism = True # Preserve the best layout from one generation to the next
@@ -387,7 +387,7 @@ def multiple_genetic(num_of_times_to_run):
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = [executor.submit(genetic_algorithm, False) for _ in range(num_of_times_to_run)]
         for f in concurrent.futures.as_completed(results):
-            best_fitnesses.append(f.result()[1])
+            best_fitnesses.append(f.result()[1][0])
             run_time.append(f.result()[2])
     best_fitnesses = np.array(best_fitnesses)
     run_time = np.array(run_time)
@@ -413,6 +413,4 @@ def multiple_genetic(num_of_times_to_run):
 
 
 if __name__ == '__main__':
-    best_population, best_fitness, _ = genetic_algorithm(True)
-    print(best_population)
-    print(best_fitness)
+    multiple_genetic(20)
