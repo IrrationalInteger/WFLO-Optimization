@@ -8,6 +8,8 @@ import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
 
+from drawings import draw_number_of_turbines_against_power_and_objective, draw_iterations_against_solution, \
+    draw_solution
 from functions import generate_random_tuples
 
 matplotlib.use('TkAgg')
@@ -55,19 +57,6 @@ def generate_neighbour_solution(solution, exclusion_list, m , n, num_of_genes):
     for _ in range(max_iterations):
         solution.pop(random.randint(0,len(solution)-1))
   return solution
-
-
-# GA parameters
-population_size = 50 # Population size (number of chromosomes per generation)
-population = []
-population_fitness = []
-survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
-crossover_percentage = 80 # Percentage of crossed over chromosomes
-mutation_percentage = 10 # Percentage of mutated chromosomes
-max_generations = 500 # Maximum number of allowed generations
-selection_strategy = 'rank' # Strategy of parent selection
-crossover_strategy = 'uniform' # Strategy of crossover
-elitism = True # Preserve the best layout from one generation to the next
 
 
 #  Create a new chromosome and calculate its fitness
@@ -345,7 +334,19 @@ def generate_population(lookup_table_dead_space_offset):
     return new_population, new_fitness
 
 
-def genetic_algorithm():
+# GA parameters
+population_size = 50 # Population size (number of chromosomes per generation)
+population = []
+population_fitness = []
+survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
+crossover_percentage = 80 # Percentage of crossed over chromosomes
+mutation_percentage = 10 # Percentage of mutated chromosomes
+max_generations = 200 # Maximum number of allowed generations
+selection_strategy = 'rank' # Strategy of parent selection
+crossover_strategy = 'uniform' # Strategy of crossover
+elitism = True # Preserve the best layout from one generation to the next
+def genetic_algorithm(visualise):
+    start = time.perf_counter()
     global population
     global population_fitness
     init_population()
@@ -355,6 +356,8 @@ def genetic_algorithm():
     lookup_table_dead_space_offset_y = [x for x in range(-n, n + 1)]
     lookup_table_dead_space_offset = [(x, y) for x in lookup_table_dead_space_offset_x for y in lookup_table_dead_space_offset_y]
     lookup_table_dead_space_offset.sort(key=lambda pair: abs(pair[0]) + abs(pair[1]))
+    optimal_objective_vs_I = []  # Optimal Objective vs iterations for plotting
+
     for i in range(max_generations):
         new_population, new_fitness = generate_population(lookup_table_dead_space_offset)
         population = new_population
@@ -368,9 +371,48 @@ def genetic_algorithm():
         print(f'Generation: {i}')
         print(population_fitness)
         print(best_fitness_yet)
-    return best_chromosome_yet, best_fitness_yet
+        optimal_objective_vs_I.append(best_fitness_yet)
+
+    if (visualise):
+        draw_solution(best_chromosome_yet,dead_cells,m,n)
+        draw_iterations_against_solution(optimal_objective_vs_I, True)
+    end = time.perf_counter()
+
+    return best_chromosome_yet, best_fitness_yet,end-start
+
+
+def multiple_genetic(num_of_times_to_run):
+    best_fitnesses = []
+    run_time = []
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        results = [executor.submit(genetic_algorithm(), False) for _ in range(num_of_times_to_run)]
+        for f in concurrent.futures.as_completed(results):
+            best_fitnesses.append(f.result()[1])
+            run_time.append(f.result()[2])
+    best_fitnesses = np.array(best_fitnesses)
+    run_time = np.array(run_time)
+    # average run time
+    average_run_time = np.mean(run_time)
+    # average best fitness
+    average_best_fitness = np.mean(best_fitnesses)
+    # standard deviation of best fitness
+    std_best_fitness = np.std(best_fitnesses)
+    # best best fitness
+    best_best_fitness = np.min(best_fitnesses)
+    # worst best fitness
+    worst_best_fitness = np.max(best_fitnesses)
+    # coefficient of variation
+    coefficient_of_variation = std_best_fitness / average_best_fitness
+    #print results
+    print(f"Average run time : {average_run_time}")
+    print(f"Average best fitness : {average_best_fitness}")
+    print(f"Standard deviation of best fitness : {std_best_fitness}")
+    print(f"Best best fitness : {best_best_fitness}")
+    print(f"Worst best fitness : {worst_best_fitness}")
+    print(f"Coefficient of variation : {coefficient_of_variation}")
+
 
 if __name__ == '__main__':
-    best_population, best_fitness = genetic_algorithm()
+    best_population, best_fitness = genetic_algorithm(False)
     print(best_population)
     print(best_fitness)

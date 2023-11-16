@@ -5,6 +5,9 @@ import random
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
+
+from drawings import draw_iterations_against_solution, draw_number_of_turbines_against_power_and_objective
+
 matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells
 
@@ -64,7 +67,6 @@ calculate_T = calculate_T_linear # Choice of scheduling function
 
 
 def simulated_annealing(visualise):
-  #start time
   start = time.perf_counter()
   current_solution = WT_list # Initial solution set to the randomized layout
   current_fitness,__,_ = objective_function(current_solution,m,n) # Initial fitness
@@ -74,7 +76,7 @@ def simulated_annealing(visualise):
   objective_vs_N = [float('inf')]*(WT_max_number+1) # Objective vs Number of Turbines for plotting
   power_vs_N = [float('inf')]*(WT_max_number+1) # Power vs Number of Turbines for plotting
   objective_vs_I = [] # Objective vs iterations for plotting
-  optimal_objective_vs_I = []# Optimal Objective vs iterations for plotting
+
   i = 0
   probability = 0
   if (visualise):
@@ -128,7 +130,6 @@ def simulated_annealing(visualise):
       draw_number_of_turbines_against_power_and_objective(power_vs_N, objective_vs_N)
       draw_iterations_against_solution(objective_vs_I, False)
       draw_iterations_against_solution(optimal_objective_vs_I, True)
-  #end time
   end = time.perf_counter()
   return best_solution,best_fitness,objective_vs_N,power_vs_N,objective_vs_I,optimal_objective_vs_I,end-start
 
@@ -173,7 +174,6 @@ def draw_simulation():
 
 
     plt.show(block=False)
-    # Function to update grid with new coordinates
 
 # Updates grid with a new turbine layout
 def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
@@ -218,73 +218,6 @@ def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
                         grid[x, y, :3] = blue_color[:3]
 
         cax.set_data(grid)  # Update plot data # Update plot data
-
-# Plots the number of turbines against the power and objective function during annealing
-def draw_number_of_turbines_against_power_and_objective(power_data,objective_data):
-
-    # Clean from float.inf
-    temp_objective_vs_N = [t for t in objective_data if t != float('inf')]
-    temp_power_vs_N = [t for t in power_data if t != float('inf')]
-    bounds = [min(temp_objective_vs_N), max(temp_objective_vs_N), min(temp_power_vs_N), max(temp_power_vs_N)]
-    objective_data = [(index, t) for index, t in enumerate(objective_data) if t != float('inf')]
-    power_data = [(index, t) for index, t in enumerate(power_data) if t != float('inf')]
-
-    power_x, power_y = zip(*power_data)
-    objective_x, objective_y = zip(*objective_data)
-
-    # Create a figure and a subplot
-    fig, ax1 = plt.subplots()
-
-    # Plot the first line with 'power_y' on the left y-axis
-    color = 'tab:red'
-    ax1.set_xlabel('Number of turbines')
-    ax1.set_ylabel('Power', color=color)
-    ax1.plot(power_x, power_y, color=color, label='Power')
-    ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set_ylim(bounds[2], bounds[3])  # Set the limits of the left y-axis
-
-    # Instantiate a second y-axis sharing the same x-axis
-    ax2 = ax1.twinx()
-    color = 'tab:blue'
-    ax2.set_ylabel('Objective', color=color)
-    ax2.plot(objective_x, objective_y, color=color, label='Objective',
-             linestyle='--')  # We use a dashed line for the second line
-    ax2.tick_params(axis='y', labelcolor=color)
-    ax2.set_ylim(bounds[0], bounds[1])  # Set the limits of the right y-axis
-
-    # Set the limits of the x-axis
-    ax1.set_xlim(0, len(power_data))
-
-    # Add a legend
-    fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
-
-    # Show the plot
-    plt.show()
-
-# Plots the number of generated solutions against the objective functino
-def draw_iterations_against_solution(objective_data,optimal):
-
-    # Create a figure and a subplot
-    fig, ax1 = plt.subplots()
-    annealing_iterations = len(objective_data)
-    # Plot the first line with 'power_y' on the left y-axis
-    color = 'tab:red'
-    ax1.set_xlabel('Iterations')
-    ax1.set_ylabel('Optimal Objective Function'if optimal else "Generated Objective Function", color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set_ylim(min(objective_data), max(objective_data))  # Set the limits of the left y-axis
-    objective_data = [(index, t) for index, t in enumerate(objective_data)]
-    objective_x, objective_y = zip(*objective_data)
-    ax1.plot(objective_x, objective_y, color=color, label='Objective')
-
-    # Set the limits of the x-axis
-    ax1.set_xlim(0, annealing_iterations)
-
-    # Add a legend
-    fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
-
-    # Show the plot
-    plt.show()
 
 
 # Test case 1 is run by default
