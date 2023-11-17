@@ -6,6 +6,8 @@ import time
 import random
 import matplotlib
 from multiprocessing import Manager
+import os
+import psutil
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -17,6 +19,13 @@ matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells, \
     WT_list_length
 
+
+def limit_cpu():
+    "is called at every process start"
+    p = psutil.Process(os.getpid())
+    # set to lowest priority, this is Windows only, on Unix use ps.nice(19)
+    # p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    p.nice(19)
 
 def add_new_WT(solution, exclusion_list, m , n):
   for i in range(len(solution)):
@@ -77,7 +86,7 @@ def init_chromosome():
 
 #  Generate the initial population randomly and calculate their fitnesses
 def init_population():
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
         results = [executor.submit( init_chromosome) for _ in range(population_size)]
         for f in concurrent.futures.as_completed(results):
             population.append(f.result()[0])
@@ -296,7 +305,7 @@ def rank_selection(num_of_parents, population, population_fitness):
 def crossover_chromosomes(population, population_fitness,lookup_table_dead_space_offset, explored_chromosomes):
     new_population = []
     new_fitness = []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
         num_of_children = math.floor((crossover_percentage * population_size / 100) + 0.5)
         parent_pairs = rank_selection(num_of_children, population, population_fitness)
         results = [executor.submit(one_point_crossover if random.randint(0, 1) == 0 else uniform_crossover, parent_pairs[i], lookup_table_dead_space_offset, explored_chromosomes) for i in range(len(parent_pairs))]
@@ -313,7 +322,7 @@ def crossover_chromosomes(population, population_fitness,lookup_table_dead_space
 def mutate_chromosomes(population, explored_chromosomes):
     new_population = []
     new_fitness = []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
         num_of_mutants = math.floor((mutation_percentage * population_size / 100) + 0.5)
         probabilities = [x ** 2 for x in range(1, len(population) + 1)]
         results = [executor.submit(mutate, random.choices(population, weights=probabilities, k=1)[0], explored_chromosomes) for i in range(num_of_mutants)]
@@ -327,7 +336,7 @@ def generate_population(lookup_table_dead_space_offset, explored_chromosomes):
     new_population = []*population_size
     new_fitness = []*population_size
     elite_chromosomes(new_population,new_fitness)
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
         result_mutate = executor.submit(mutate_chromosomes, population, explored_chromosomes)
         result_crossover = executor.submit(crossover_chromosomes, population,population_fitness,lookup_table_dead_space_offset, explored_chromosomes)
         results = [result_mutate, result_crossover]
@@ -351,7 +360,7 @@ population_fitness = []
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
 crossover_percentage = 80 # Percentage of crossed over chromosomes
 mutation_percentage = 10 # Percentage of mutated chromosomes
-max_generations = 500 # Maximum number of allowed generations
+max_generations = 200 # Maximum number of allowed generations
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
 elitism = True # Preserve the best layout from one generation to the next
