@@ -10,8 +10,8 @@ import time
 
 
 #constraints
-n, m = 15,15 # grid size n*m
-dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
+n, m = 25,25 # grid size n*m
+dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)] # no turbines can be placed in these cells
 spacing_distance = 3
 WT_max_number = math.ceil(m/spacing_distance+1)*math.ceil(n/spacing_distance+1) # user_defined
 MAX_WT_number = math.ceil(m/spacing_distance+1)*math.ceil(n/spacing_distance+1) # defined by the grid size and spacing constraints
