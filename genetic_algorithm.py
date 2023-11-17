@@ -22,9 +22,9 @@ from problem import spacing_distance, MAX_WT_number, objective_function, m, n, W
 def limit_cpu():
     "is called at every process start"
     p = psutil.Process(os.getpid())
-    # set to lowest priority, this is Windows only, on Unix use ps.nice(19)
-    # p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
-    p.nice(19)
+    # set to lowest priority
+    # p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS) for Windows
+    p.nice(19) # for Linux
 
 
 def add_new_WT(solution, exclusion_list, m, n):
