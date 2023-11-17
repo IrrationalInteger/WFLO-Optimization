@@ -60,7 +60,7 @@ def calculate_T_geometric(T, factor):
 T_initial = 500 # Initial temperature of annealing
 T_final = 0 # Final temperature of annealing
 iteration_per_T = 2 # The number of solutions generated per temperature
-i_max = 250 # Artificial stopping condition
+i_max = 50 # Artificial stopping condition
 factor = 1 # Factor used for decreasing temperature. Used as step for linear and factor for geometric.
 fitness_value_scaling_factor = 10000000 # Scaling of fitness for temperature
 calculate_T = calculate_T_linear # Choice of scheduling function
@@ -230,11 +230,11 @@ def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
 # calculate_T = calculate_T_geometric
 
 # Uncomment this block for test case 3
-#n,m = 20,20
-#dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-#T_initial = 500
-#factor = 1
-#calculate_T = calculate_T_linear
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# T_initial = 500
+# factor = 1
+# calculate_T = calculate_T_linear
 
 # Uncomment this block for test case 4
 # n,m = 20,20
@@ -244,18 +244,18 @@ def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
 # calculate_T = calculate_T_geometric
 
 # Uncomment this block for test case 5
-n,m = 25,25
-dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-T_initial = 500
-factor = 1
-calculate_T = calculate_T_linear
+# n,m = 25,25
+# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# T_initial = 500
+# factor = 1
+# calculate_T = calculate_T_linear
 
 # Uncomment this block for test case 6
-#n,m = 25,25
-#dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-#T_initial = 1000
-#factor = 0.95
-#calculate_T = calculate_T_geometric
+# n,m = 25,25
+# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# T_initial = 1000
+# factor = 0.95
+# calculate_T = calculate_T_geometric
 
 def multiple_simulated_annealing(num_of_times_to_run):
     best_fitnesses = []
@@ -288,6 +288,4 @@ def multiple_simulated_annealing(num_of_times_to_run):
     print(f"Coefficient of variation : {coefficient_of_variation}")
 
 if __name__ == "__main__":
-
-
     multiple_simulated_annealing(20)

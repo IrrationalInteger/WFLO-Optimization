@@ -264,7 +264,6 @@ def rank_selection(num_of_parents, population, population_fitness):
     probabilities = [x for x in range(1, len(population) + 1)]
     probabilities.reverse()
 
-    print(probabilities)
     # Initialize a list to store pairs of parents for crossover
     selected_parents = []
 
@@ -341,7 +340,7 @@ population_fitness = []
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
 crossover_percentage = 80 # Percentage of crossed over chromosomes
 mutation_percentage = 10 # Percentage of mutated chromosomes
-max_generations = 200 # Maximum number of allowed generations
+max_generations = 300 # Maximum number of allowed generations
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
 elitism = True # Preserve the best layout from one generation to the next
@@ -381,6 +380,44 @@ def genetic_algorithm(visualise):
     return best_chromosome_yet, best_fitness_yet, end-start
 
 
+# Test case 1 is run by default
+
+# Uncomment this block for test case 2
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
+
+# Uncomment this block for test case 3
+n,m = 25,25
+dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+survivor_percentage = 10
+crossover_percentage = 80
+mutation_percentage = 10
+
+# Uncomment this block for test case 4
+# n,m = 15,15
+# dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
+# T_initial = 1000
+# factor = 0.95
+# calculate_T = calculate_T_geometric
+
+# Uncomment this block for test case 5
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# T_initial = 500
+# factor = 1
+# calculate_T = calculate_T_linear
+
+# Uncomment this block for test case 6
+# n,m = 25,25
+# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# T_initial = 1000
+# factor = 0.95
+ # calculate_T = calculate_T_geometric
+
+
 def multiple_genetic(num_of_times_to_run):
     best_fitnesses = []
     run_time = []
@@ -413,6 +450,8 @@ def multiple_genetic(num_of_times_to_run):
 
 
 if __name__ == '__main__':
-    best_population, best_fitness, _ = genetic_algorithm(True)
-    print(best_population)
-    print(best_fitness)
+    best_chromosome_yet, best_fitness_yet, _ = genetic_algorithm(True);
+    print(best_chromosome_yet)
+    print(best_fitness_yet)
+
+
