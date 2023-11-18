@@ -4,21 +4,12 @@ import math
 import time
 import random
 import matplotlib
-from multiprocessing import Manager
-import os
-import psutil
 from drawings import  draw_iterations_against_solution, draw_solution
 from functions import generate_random_tuples
 matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, dead_cells, WT_list_length
 
 
-def limit_cpu():
-    "is called at every process start"
-    p = psutil.Process(os.getpid())
-    # set to lowest priority
-    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS) # for Windows
-    # p.nice(19) # for Linux
 
 
 def add_new_WT(solution, exclusion_list, m, n):
@@ -65,16 +56,6 @@ def generate_neighbour_solution(solution, exclusion_list, m, n, num_of_genes):
             solution.pop(random.randint(0, len(solution) - 1))
     return solution
 
-
-def calculate_objective_function(solution, explored_chromosomes):
-    solution = tuple(solution)
-    if solution in explored_chromosomes:
-        print('explored')
-        return explored_chromosomes[solution]
-    else:
-        fitness = objective_function(solution, m, n)
-        explored_chromosomes[solution] = fitness
-        return fitness
 
 
 #  Create a new chromosome and calculate its fitness
@@ -132,15 +113,15 @@ def elite_chromosomes(new_population, new_fitness):
 
 
 
-def mutate(chromosome, explored_chromosomes):
+def mutate(chromosome):
     chromosome = chromosome.copy()
     num_of_genes = 1  # Mutate a fourth of the genes   max(4,math.floor((0.25*len(chromosome)) + 0.5))
     chromosome = generate_neighbour_solution(chromosome, dead_cells, m, n, num_of_genes)
-    fitness = calculate_objective_function(chromosome, explored_chromosomes)
+    fitness = objective_function(chromosome, m, n)
     return chromosome, fitness
 
 
-def uniform_crossover(parents_pair, lookup_table_dead_space_offset, explored_chromosomes):
+def uniform_crossover(parents_pair, lookup_table_dead_space_offset):
     parent1, parent2 = parents_pair
     child1 = []
     child2 = []
@@ -213,11 +194,11 @@ def uniform_crossover(parents_pair, lookup_table_dead_space_offset, explored_chr
                     add_dead_space((cell[0] + dx, cell[1] + dy), lookup_table_2)
                     break
 
-    return child1, child2, calculate_objective_function(child1, explored_chromosomes), calculate_objective_function(
-        child2, explored_chromosomes)
+    return child1, child2, objective_function(child1,m ,n), objective_function(
+        child2, m, n)
 
 
-def one_point_crossover(parents_pair, lookup_table_dead_space_offset, explored_chromosomes):
+def one_point_crossover(parents_pair, lookup_table_dead_space_offset):
     parent1, parent2 = parents_pair
     child1 = []
     child2 = []
@@ -280,8 +261,8 @@ def one_point_crossover(parents_pair, lookup_table_dead_space_offset, explored_c
         child1 = parent1.copy()
     if len(child2) == 0:
         child2 = parent2.copy()
-    return child1, child2, calculate_objective_function(child1, explored_chromosomes), calculate_objective_function(
-        child2, explored_chromosomes)
+    return child1, child2, objective_function(child1, m, n), objective_function(
+        child2, m, n)
 
 
 def rank_selection(num_of_parents, population, population_fitness):
@@ -311,15 +292,15 @@ def rank_selection(num_of_parents, population, population_fitness):
     return parent_pairs
 
 
-def crossover_chromosomes(population, population_fitness, lookup_table_dead_space_offset, explored_chromosomes):
+def crossover_chromosomes(population, population_fitness, lookup_table_dead_space_offset):
     new_population = []
     new_fitness = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         num_of_children = math.floor((crossover_percentage * population_size / 100) + 0.5)
         parent_pairs = rank_selection(num_of_children, population, population_fitness)
         results = [
             executor.submit(one_point_crossover if random.randint(0, 1) == 0 else uniform_crossover, parent_pairs[i],
-                            lookup_table_dead_space_offset, explored_chromosomes) for i in range(len(parent_pairs))]
+                            lookup_table_dead_space_offset) for i in range(len(parent_pairs))]
         for f in concurrent.futures.as_completed(results):
             new_population.append(f.result()[0])
             new_fitness.append(f.result()[2])
@@ -331,14 +312,14 @@ def crossover_chromosomes(population, population_fitness, lookup_table_dead_spac
     return new_population, new_fitness
 
 
-def mutate_chromosomes(population, explored_chromosomes):
+def mutate_chromosomes(population):
     new_population = []
     new_fitness = []
-    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         num_of_mutants = math.floor((mutation_percentage * population_size / 100) + 0.5)
         probabilities = [x ** 2 for x in range(1, len(population) + 1)]
         results = [
-            executor.submit(mutate, random.choices(population, weights=probabilities, k=1)[0], explored_chromosomes) for
+            executor.submit(mutate, random.choices(population, weights=probabilities, k=1)[0]) for
             i in range(num_of_mutants)]
         # results = [executor.submit(mutate, population[len(population)-i-1]) for i in range(num_of_mutants)]
         for f in concurrent.futures.as_completed(results):
@@ -347,14 +328,14 @@ def mutate_chromosomes(population, explored_chromosomes):
     return new_population, new_fitness
 
 
-def generate_population(lookup_table_dead_space_offset, explored_chromosomes):
+def generate_population(lookup_table_dead_space_offset):
     new_population = [] * population_size
     new_fitness = [] * population_size
     elite_chromosomes(new_population, new_fitness)
-    with concurrent.futures.ProcessPoolExecutor(max_workers=None, initializer=limit_cpu) as executor:
-        result_mutate = executor.submit(mutate_chromosomes, population, explored_chromosomes)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        result_mutate = executor.submit(mutate_chromosomes, population)
         result_crossover = executor.submit(crossover_chromosomes, population, population_fitness,
-                                           lookup_table_dead_space_offset, explored_chromosomes)
+                                           lookup_table_dead_space_offset)
         results = [result_mutate, result_crossover]
         for f in concurrent.futures.as_completed(results):
             new_population.extend(f.result()[0])
@@ -380,7 +361,7 @@ max_generations = 200 # Maximum number of allowed generations
 skew_mutation = False #Reduce the skew towards the elite in rank selection
 
 
-def genetic_algorithm(visualise, explored_chromosomes):
+def genetic_algorithm(visualise):
     start = time.perf_counter()
     global population
     global population_fitness
@@ -395,7 +376,7 @@ def genetic_algorithm(visualise, explored_chromosomes):
     optimal_objective_vs_I = []  # Optimal Objective vs iterations for plotting
 
     for i in range(max_generations):
-        new_population, new_fitness = generate_population(lookup_table_dead_space_offset, explored_chromosomes)
+        new_population, new_fitness = generate_population(lookup_table_dead_space_offset)
         population = new_population
         population_fitness = new_fitness
         for j in range(len(population)):
@@ -422,73 +403,45 @@ def genetic_algorithm(visualise, explored_chromosomes):
 # Uncomment this block for test case 2
 # n,m = 20,20
 # dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# skew_mutation = False
 # survivor_percentage = 10
 # crossover_percentage = 80
 # mutation_percentage = 10
 
 # Uncomment this block for test case 3
-n,m = 25,25
-dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-survivor_percentage = 10
-crossover_percentage = 80
-mutation_percentage = 10
+# n,m = 25,25
+# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# skew_mutation = False
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
 
 # Uncomment this block for test case 4
 # n,m = 15,15
 # dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
-# T_initial = 1000
-# factor = 0.95
-# calculate_T = calculate_T_geometric
+# skew_mutation = True
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
 
 # Uncomment this block for test case 5
 # n,m = 20,20
 # dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-# T_initial = 500
-# factor = 1
-# calculate_T = calculate_T_linear
+# skew_mutation = True
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
 
 # Uncomment this block for test case 6
 # n,m = 25,25
 # dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-# T_initial = 1000
-# factor = 0.95
-# calculate_T = calculate_T_geometric
+# skew_mutation = True
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
 
-
-def multiple_genetic(num_of_times_to_run):
-    with Manager() as manager:
-        best_fitnesses = []
-        run_time = []
-        explored_chromosomes = manager.dict()
-        for _ in range(num_of_times_to_run):
-            _, best_fitness_yet, time_taken = genetic_algorithm(False, explored_chromosomes)
-            best_fitnesses.append(best_fitness_yet[0])
-            run_time.append(time_taken)
-        # best_fitnesses = np.array(best_fitnesses)
-        # run_time = np.array(run_time)
-        # # average run time
-        # average_run_time = np.mean(run_time)
-        # # average best fitness
-        # average_best_fitness = np.mean(best_fitnesses)
-        # # standard deviation of best fitness
-        # std_best_fitness = np.std(best_fitnesses)
-        # # best best fitness
-        # best_best_fitness = np.min(best_fitnesses)
-        # # worst best fitness
-        # worst_best_fitness = np.max(best_fitnesses)
-        # # coefficient of variation
-        # coefficient_of_variation = std_best_fitness / average_best_fitness
-        # #print results
-        # print(f"Average run time : {average_run_time}")
-        # print(f"Average best fitness : {average_best_fitness}")
-        # print(f"Standard deviation of best fitness : {std_best_fitness}")
-        # print(f"Best best fitness : {best_best_fitness}")
-        # print(f"Worst best fitness : {worst_best_fitness}")
-        # print(f"Coefficient of variation : {coefficient_of_variation}")
-        print(f"Best fitnesses : {best_fitnesses}")
-        print(f"Run time : {run_time}")
 
 
 if __name__ == '__main__':
-    multiple_genetic(1)
+    genetic_algorithm(True)
 
