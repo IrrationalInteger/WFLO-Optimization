@@ -92,6 +92,10 @@ def init_chromosome():
 
 #  Generate the initial population randomly and calculate their fitnesses
 def init_population():
+    global population
+    global population_fitness
+    population = []
+    population_fitness = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = [executor.submit(init_chromosome) for _ in range(population_size)]
         for f in concurrent.futures.as_completed(results):
@@ -434,11 +438,11 @@ def genetic_algorithm(visualise, explored_chromosomes):
 # mutation_percentage = 10
 
 # Uncomment this block for test case 3
-# n,m = 25,25
-# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-# survivor_percentage = 10
-# crossover_percentage = 80
-# mutation_percentage = 10
+n,m = 25,25
+dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+survivor_percentage = 10
+crossover_percentage = 80
+mutation_percentage = 10
 
 # Uncomment this block for test case 4
 # n,m = 15,15
