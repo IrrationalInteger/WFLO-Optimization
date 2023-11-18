@@ -501,4 +501,4 @@ def multiple_genetic(num_of_times_to_run):
 
 
 if __name__ == '__main__':
-    multiple_genetic(5)
+    multiple_genetic(1)
