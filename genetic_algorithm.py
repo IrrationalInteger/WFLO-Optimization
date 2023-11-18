@@ -6,16 +6,13 @@ import time
 import random
 import matplotlib
 from multiprocessing import Manager
-import numpy as np
-from matplotlib import pyplot as plt
 
-from drawings import draw_number_of_turbines_against_power_and_objective, draw_iterations_against_solution, \
-    draw_solution
+
+from drawings import  draw_iterations_against_solution, draw_solution
 from functions import generate_random_tuples
 
 matplotlib.use('TkAgg')
-from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells, \
-    WT_list_length
+from problem import spacing_distance, MAX_WT_number, objective_function, m, n, dead_cells, WT_list_length
 
 
 def add_new_WT(solution, exclusion_list, m , n):
@@ -93,7 +90,7 @@ def init_population():
         population_fitness[i] = fitness
 
 def elite_chromosomes(new_population,new_fitness):
-    if elitism:
+
         elite_population = []
         half_num_of_elites = math.floor(((survivor_percentage/2)*population_size/100)+0.5)
         num_of_elites = half_num_of_elites*2
@@ -115,9 +112,7 @@ def elite_chromosomes(new_population,new_fitness):
                 chromosomes_added += 1
                 if chromosomes_added == num_of_elites:
                     break
-    else:
-        #later REMEMBER DONT DO THIS
-        pass
+
 
 
 def mutate(chromosome, explored_chromosomes):
@@ -271,7 +266,7 @@ def rank_selection(num_of_parents, population, population_fitness):
     if num_of_parents % 2 != 0:
         num_of_parents += 1
     # Calculate the weights
-    probabilities = [x for x in range(1, len(population) + 1)]
+    probabilities = [x**0 for x in range(1, len(population) + 1)]
     probabilities.reverse()
 
     # Initialize a list to store pairs of parents for crossover
@@ -351,10 +346,9 @@ survivor_percentage = 10 # Percentage of chromosomes that survive till next gene
 crossover_percentage = 80 # Percentage of crossed over chromosomes
 mutation_percentage = 10 # Percentage of mutated chromosomes
 max_generations = 200 # Maximum number of allowed generations
-
 selection_strategy = 'rank' # Strategy of parent selection
 crossover_strategy = 'uniform' # Strategy of crossover
-elitism = True # Preserve the best layout from one generation to the next
+skew_mutation = False #Reduce the skew towards the elite in rank selection
 def genetic_algorithm(visualise, explored_chromosomes):
     start = time.perf_counter()
     global population
@@ -464,4 +458,5 @@ def multiple_genetic(num_of_times_to_run):
 
 
 if __name__ == '__main__':
-    multiple_genetic(5)
+    multiple_genetic(1)
+
