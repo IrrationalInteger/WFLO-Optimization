@@ -1,17 +1,16 @@
-
 # Plots the number of turbines against the power and objective function during annealing
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
+
 matplotlib.use('TkAgg')
 
 
-
-def draw_solution(solution,dead_cells,m,n):
+def draw_solution(solution, dead_cells, m, n):
     # Create a white grid
     global grid
     grid = np.ones((m, n, 4))
-    global ax1,cax
+    global ax1, cax
     # Create a figure with two subplots (side by side)
     fig, ax1 = plt.subplots(1, 1)
 
@@ -20,8 +19,6 @@ def draw_solution(solution,dead_cells,m,n):
     ax1.set_xticks(np.arange(n))
     ax1.set_yticks(np.arange(m))
     ax1.invert_yaxis()
-
-
 
     # Function to add gridlines to an axis
     def add_gridlines(ax):
@@ -34,7 +31,6 @@ def draw_solution(solution,dead_cells,m,n):
     add_gridlines(ax1)
     ax1.set_title('Best Solution')
 
-
     plt.show(block=False)
     # Reset the grid to all white with full opacity
     grid[:, :, :3] = 1  # All pixels white
@@ -45,25 +41,17 @@ def draw_solution(solution,dead_cells,m,n):
             grid[x, y, :3] = [0.2, 0.2, 0.2]
             grid[x, y, 3] = 1
 
-
-
     # Apply the new coordinates for blue
     for coord in solution:
-            y, x = int(coord[0]), int(coord[1])
-            if 0 <= x < n and 0 <= y < m:
-                grid[x, y, :3] = [0, 0, 1]
-                grid[x, y, 3] = 1
-
-
-
-
-
+        y, x = int(coord[0]), int(coord[1])
+        if 0 <= x < n and 0 <= y < m:
+            grid[x, y, :3] = [0, 0, 1]
+            grid[x, y, 3] = 1
 
     cax.set_data(grid)  # Update plot data # Update plot data
 
 
-def draw_number_of_turbines_against_power_and_objective(power_data,objective_data):
-
+def draw_number_of_turbines_against_power_and_objective(power_data, objective_data):
     # Clean from float.inf
     temp_objective_vs_N = [t for t in objective_data if t != float('inf')]
     temp_power_vs_N = [t for t in power_data if t != float('inf')]
@@ -103,16 +91,16 @@ def draw_number_of_turbines_against_power_and_objective(power_data,objective_dat
     # Show the plot
     plt.show()
 
-# Plots the number of generated solutions against the objective functino
-def draw_iterations_against_solution(objective_data,optimal):
 
+# Plots the number of generated solutions against the objective functino
+def draw_iterations_against_solution(objective_data, optimal):
     # Create a figure and a subplot
     fig, ax1 = plt.subplots()
     annealing_iterations = len(objective_data)
     # Plot the first line with 'power_y' on the left y-axis
     color = 'tab:red'
     ax1.set_xlabel('Iterations')
-    ax1.set_ylabel('Optimal Objective Function'if optimal else "Generated Objective Function", color=color)
+    ax1.set_ylabel('Optimal Objective Function' if optimal else "Generated Objective Function", color=color)
     ax1.tick_params(axis='y', labelcolor=color)
     print(objective_data)
     ax1.set_ylim(min(objective_data), max(objective_data))  # Set the limits of the left y-axis
