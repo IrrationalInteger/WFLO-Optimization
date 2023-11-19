@@ -1,12 +1,39 @@
-# Plots the number of turbines against the power and objective function during annealing
-import numpy as np
-from matplotlib import pyplot as plt
 import matplotlib
-
 matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import numpy as np
+def draw_simulation_genetic(x_range):
+    fig, ax = plt.subplots()
+    ax.scatter(x_range, [0] * len(x_range))
+    ax.set_xlabel('Generation')
+    ax.set_ylabel('Fitness')
+    ax.set_title('Fitness Values')
+
+    plt.show(block=False)  # Use non-blocking show
+    return ax
+
+def update_plot_genetic( ax, x_value, y_values):
+    normalized_y = (np.array(y_values) - min(y_values)) / (max(y_values) - min(y_values))
+    scatter_plot = ax.scatter([x_value] * len(y_values), y_values, c=normalized_y, cmap='viridis')
+
+    # Store and set x-axis limits
+    x_limits = ax.get_xlim()
+
+    # Update y-axis limits based on the new data
+
+    ax.set_ylim(min(scatter_plot.get_offsets()[:, 1]),max(scatter_plot.get_offsets()[:, 1]))
+
+    # Set x-axis limits back to the initial values
+    ax.set_xlim(x_limits)
+
+    ax.relim()  # Recalculate the data limits for proper autoscaling
+    ax.autoscale_view(scalex=False)  # Autoscale the y-axis only
+
+    plt.draw()
+    plt.pause(0.1)  # Pause for a short time to allow time for the plot to be displayed
 
 
-def draw_solution(solution, dead_cells, m, n):
+def draw_solution_genetic(solution, fitness, dead_cells, m, n):
     # Create a white grid
     global grid
     grid = np.ones((m, n, 4))
@@ -29,7 +56,8 @@ def draw_solution(solution, dead_cells, m, n):
 
     # Add gridlines
     add_gridlines(ax1)
-    ax1.set_title('Best Solution')
+    ax1.set_title("Best Solution"
+                  "\nFitness:" + str(round(fitness, 8)))
 
     plt.show(block=False)
     # Reset the grid to all white with full opacity
@@ -92,7 +120,7 @@ def draw_number_of_turbines_against_power_and_objective(power_data, objective_da
     plt.show()
 
 
-# Plots the number of generated solutions against the objective functino
+# Plots the number of generated solutions against the objective function
 def draw_iterations_against_solution(objective_data, optimal):
     # Create a figure and a subplot
     fig, ax1 = plt.subplots()

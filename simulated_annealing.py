@@ -1,4 +1,3 @@
-import concurrent.futures
 import math
 import time
 import random
@@ -60,7 +59,7 @@ def calculate_T_geometric(T, factor):
 T_initial = 500 # Initial temperature of annealing
 T_final = 0 # Final temperature of annealing
 iteration_per_T = 2 # The number of solutions generated per temperature
-i_max = 50 # Artificial stopping condition
+i_max = 500 # Artificial stopping condition
 factor = 1 # Factor used for decreasing temperature. Used as step for linear and factor for geometric.
 fitness_value_scaling_factor = 10000000 # Scaling of fitness for temperature
 calculate_T = calculate_T_linear # Choice of scheduling function
@@ -80,7 +79,7 @@ def simulated_annealing(visualise):
   i = 0
   probability = 0
   if visualise:
-      draw_simulation()
+      draw_simulation_annealing()
       time.sleep(3)  # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
   while T_current > T_final and i <= i_max:
     for j in range(iteration_per_T):
@@ -116,8 +115,8 @@ def simulated_annealing(visualise):
                         "\nIteration:"+str(j)+
                         "\nProbability:"+str(round(probability,3))+
                         "\nFitness:"+str(round(current_fitness,8)))
-          update_grid(grid1,cax1,current_solution,best_solution,True)
-          update_grid(grid2,cax2,None,best_solution,False)
+          update_grid_annealing(grid1, cax1, current_solution, best_solution, True)
+          update_grid_annealing(grid2, cax2, None, best_solution, False)
 
       print(current_fitness)
       print(current_solution)
@@ -136,7 +135,7 @@ def simulated_annealing(visualise):
 
 
 # Initializes grid for layout drawing
-def draw_simulation():
+def draw_simulation_annealing():
     # Create a white grid
     global grid1
     grid1 = np.ones((n, m, 4))
@@ -176,7 +175,7 @@ def draw_simulation():
     plt.show(block=False)
 
 # Updates grid with a new turbine layout
-def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
+def update_grid_annealing(grid, cax, coords_red, coords_blue, blue_trans):
         # Reset the grid to all white with full opacity
         grid[:, :, :3] = 1  # All pixels white
         grid[:, :, 3] = 0  # Full opacity (no transparency)
@@ -257,35 +256,7 @@ def update_grid(grid, cax, coords_red, coords_blue,blue_trans):
 # factor = 0.95
 # calculate_T = calculate_T_geometric
 
-def multiple_simulated_annealing(num_of_times_to_run):
-    best_fitnesses = []
-    run_time = []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.submit(simulated_annealing, False) for _ in range(num_of_times_to_run)]
-        for f in concurrent.futures.as_completed(results):
-            best_fitnesses.append(f.result()[1])
-            run_time.append(f.result()[6])
-    best_fitnesses = np.array(best_fitnesses)
-    run_time = np.array(run_time)
-    # average run time
-    average_run_time = np.mean(run_time)
-    # average best fitness
-    average_best_fitness = np.mean(best_fitnesses)
-    # standard deviation of best fitness
-    std_best_fitness = np.std(best_fitnesses)
-    # best best fitness
-    best_best_fitness = np.min(best_fitnesses)
-    # worst best fitness
-    worst_best_fitness = np.max(best_fitnesses)
-    # coefficient of variation
-    coefficient_of_variation = std_best_fitness / average_best_fitness
-    #print results
-    print(f"Average run time : {average_run_time}")
-    print(f"Average best fitness : {average_best_fitness}")
-    print(f"Standard deviation of best fitness : {std_best_fitness}")
-    print(f"Best best fitness : {best_best_fitness}")
-    print(f"Worst best fitness : {worst_best_fitness}")
-    print(f"Coefficient of variation : {coefficient_of_variation}")
+
 
 if __name__ == "__main__":
-    multiple_simulated_annealing(20)
+    simulated_annealing(True)
