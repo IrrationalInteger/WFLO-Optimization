@@ -3,6 +3,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Draws a live simulation for genetic algorithm
 def draw_simulation_genetic(x_range):
     fig, ax = plt.subplots()
     ax.scatter(x_range, [0] * len(x_range))
@@ -13,16 +15,24 @@ def draw_simulation_genetic(x_range):
     plt.show(block=False)  # Use non-blocking show
     return ax
 
-def update_plot_genetic( ax, x_value, y_values):
+# Updates the live simulation for genetic algorithm
+def update_plot_genetic( ax, x_value, y_values, max_y=None, min_y=None):
+
+    # Normalize y-values
     normalized_y = (np.array(y_values) - min(y_values)) / (max(y_values) - min(y_values))
+
+    # Create a scatter plot
     scatter_plot = ax.scatter([x_value] * len(y_values), y_values, c=normalized_y, cmap='viridis')
+
+    # Update max and min y-values
+
+    current_max_y = max(max_y,max(scatter_plot.get_offsets()[:, 1])) if max_y is not None else max(scatter_plot.get_offsets()[:, 1])
+    current_min_y = min(min_y,min(scatter_plot.get_offsets()[:, 1])) if min_y is not None else min(scatter_plot.get_offsets()[:, 1])
+    # Update y-axis limits based on the new data and historical max/min values
+    ax.set_ylim(current_min_y, current_max_y)
 
     # Store and set x-axis limits
     x_limits = ax.get_xlim()
-
-    # Update y-axis limits based on the new data
-
-    ax.set_ylim(min(scatter_plot.get_offsets()[:, 1]),max(scatter_plot.get_offsets()[:, 1]))
 
     # Set x-axis limits back to the initial values
     ax.set_xlim(x_limits)
@@ -31,9 +41,10 @@ def update_plot_genetic( ax, x_value, y_values):
     ax.autoscale_view(scalex=False)  # Autoscale the y-axis only
 
     plt.draw()
-    plt.pause(0.1)  # Pause for a short time to allow time for the plot to be displayed
+    plt.pause(0.1)
 
-
+    return current_max_y, current_min_y  # Return updated max and min y-values
+# Draws the final solution for genetic algorithm
 def draw_solution_genetic(solution, fitness, dead_cells, m, n):
     # Create a white grid
     global grid
@@ -79,7 +90,7 @@ def draw_solution_genetic(solution, fitness, dead_cells, m, n):
 
     cax.set_data(grid)  # Update plot data # Update plot data
 
-
+# Plots the number of turbines against the power and objective function values
 def draw_number_of_turbines_against_power_and_objective(power_data, objective_data):
     # Clean from float.inf
     temp_objective_vs_N = [t for t in objective_data if t != float('inf')]

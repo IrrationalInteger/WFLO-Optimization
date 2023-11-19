@@ -64,7 +64,7 @@ factor = 1 # Factor used for decreasing temperature. Used as step for linear and
 fitness_value_scaling_factor = 10000000 # Scaling of fitness for temperature
 calculate_T = calculate_T_linear # Choice of scheduling function
 
-
+# Performs simulated annealing using the given parameters
 def simulated_annealing(visualise):
   start = time.perf_counter()
   current_solution = WT_list # Initial solution set to the randomized layout
@@ -134,7 +134,7 @@ def simulated_annealing(visualise):
 
 
 
-# Initializes grid for layout drawing
+# Draws a live simulation for simulated annealing
 def draw_simulation_annealing():
     # Create a white grid
     global grid1
@@ -174,7 +174,7 @@ def draw_simulation_annealing():
 
     plt.show(block=False)
 
-# Updates grid with a new turbine layout
+# Updates the live simulation for simulated annealing
 def update_grid_annealing(grid, cax, coords_red, coords_blue, blue_trans):
         # Reset the grid to all white with full opacity
         grid[:, :, :3] = 1  # All pixels white

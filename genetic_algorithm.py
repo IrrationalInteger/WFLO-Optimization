@@ -88,7 +88,7 @@ def init_population():
         population_fitness[i] = fitness
 
 
-
+# Finds the best N/2 elites that satisfy the power constraint if they exist and the rest of the elites are chosen as the best fitness chromosomes
 def elite_chromosomes(new_population, new_fitness):
         elite_population = []
         half_num_of_elites = math.floor(((survivor_percentage / 2) * population_size / 100) + 0.5)
@@ -113,7 +113,7 @@ def elite_chromosomes(new_population, new_fitness):
                     break
 
 
-
+# Mutates a given chromosome
 def mutate(chromosome):
     chromosome = chromosome.copy()
     num_of_genes = 1 # or for multiple gene mutations : max(4,math.floor((0.25*len(chromosome)) + 0.5))
@@ -121,7 +121,7 @@ def mutate(chromosome):
     fitness = objective_function(chromosome, m, n)
     return chromosome, fitness
 
-
+# Performs uniform crossover by randomly swapping some genes (turbines) between the parents and fixing the spacing distance violations using a lookup table
 def uniform_crossover(parents_pair, lookup_table_dead_space_offset):
     parent1, parent2 = parents_pair
     child1 = []
@@ -198,7 +198,7 @@ def uniform_crossover(parents_pair, lookup_table_dead_space_offset):
     return child1, child2, objective_function(child1,m ,n), objective_function(
         child2, m, n)
 
-
+# Performs one point crossover at a randomly selected divider between the parents and swapping all of the genes (turbines) after it and fixing the spacing distance violations using a lookup table
 def one_point_crossover(parents_pair, lookup_table_dead_space_offset):
     parent1, parent2 = parents_pair
     child1 = []
@@ -265,7 +265,7 @@ def one_point_crossover(parents_pair, lookup_table_dead_space_offset):
     return child1, child2, objective_function(child1, m, n), objective_function(
         child2, m, n)
 
-
+# Performs rank selection across a number of parents in a given population
 def rank_selection(num_of_parents, population):
     if num_of_parents % 2 != 0:
         num_of_parents += 1
@@ -292,7 +292,7 @@ def rank_selection(num_of_parents, population):
 
     return parent_pairs
 
-
+# Performs crossover on the population using the given crossover percentage
 def crossover_chromosomes(population, lookup_table_dead_space_offset):
     new_population = []
     new_fitness = []
@@ -312,7 +312,7 @@ def crossover_chromosomes(population, lookup_table_dead_space_offset):
         new_fitness.pop()
     return new_population, new_fitness
 
-
+# Performs mutation on the population using the given mutation percentage
 def mutate_chromosomes(population):
     new_population = []
     new_fitness = []
@@ -327,7 +327,7 @@ def mutate_chromosomes(population):
             new_fitness.append(f.result()[1])
     return new_population, new_fitness
 
-
+# Generates a new population based on the previous population using elitism, crossover, and mutation
 def generate_population(lookup_table_dead_space_offset):
     new_population = [] * population_size
     new_fitness = [] * population_size
@@ -360,32 +360,37 @@ mutation_percentage = 10 # Percentage of mutated chromosomes
 max_generations = 300 # Maximum number of allowed generations
 do_uniform = True # Specifies if uniform crossover can be chosen randomly
 
+# Performs genetic algorithm using the given parameters
 def genetic_algorithm(visualise):
     start = time.perf_counter()
-    num_of_generations = []
+    num_of_generations = [] # Num of generations used for plotting
     for i in range(1, max_generations+1):
         num_of_generations.append(i)
     global population
     global population_fitness
-    init_population()
-    best_chromosome_yet = population[0]
-    best_fitness_yet = population_fitness[0]
+    init_population() # Initialize a population
+    best_chromosome_yet = population[0] # Record the best chromosome during running
+    best_fitness_yet = population_fitness[0] #  Record the best fitness during running
+
+    # Create the lookup table early and pass it to save on CPU
     lookup_table_dead_space_offset_x = [x for x in range(-m, m + 1)]
     lookup_table_dead_space_offset_y = [x for x in range(-n, n + 1)]
     lookup_table_dead_space_offset = [(x, y) for x in lookup_table_dead_space_offset_x for y in
                                       lookup_table_dead_space_offset_y]
     lookup_table_dead_space_offset.sort(key=lambda pair: abs(pair[0]) + abs(pair[1]))
+
     optimal_objective_vs_I = []  # Optimal Objective vs iterations for plotting
     if visualise:
         ax = draw_simulation_genetic(num_of_generations)
-    time.sleep(1)  # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
+        time.sleep(
+            1)  # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
     for i in range(max_generations):
-        new_population, new_fitness = generate_population(lookup_table_dead_space_offset)
+        new_population, new_fitness = generate_population(lookup_table_dead_space_offset) # Generate new population each iteration
         if visualise:
             fitness_values = []
             for fitness in new_fitness:
                 fitness_values.append(fitness[0])
-            update_plot_genetic(ax, i, fitness_values)
+            max, min = update_plot_genetic(ax, i, fitness_values, None if i==0 else max, None if i==0 else min)
         population = new_population
         population_fitness = new_fitness
         for j in range(len(population)):
@@ -410,12 +415,12 @@ def genetic_algorithm(visualise):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-n,m = 20,20
-dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-survivor_percentage = 10
-crossover_percentage = 80
-mutation_percentage = 10
-do_uniform = True
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
+# do_uniform = True
 
 # Uncomment this block for test case 3
 # n,m = 25,25
@@ -453,7 +458,6 @@ do_uniform = True
 
 if __name__ == '__main__':
     chromosome, fitness, runtime = genetic_algorithm(True)
-
     print(chromosome)
     print(fitness)
     print(runtime)
