@@ -116,7 +116,7 @@ def elite_chromosomes(new_population, new_fitness):
 
 def mutate(chromosome):
     chromosome = chromosome.copy()
-    num_of_genes = 1 # or max(4,math.floor((0.25*len(chromosome)) + 0.5))
+    num_of_genes = 1 # or for multiple gene mutations : max(4,math.floor((0.25*len(chromosome)) + 0.5))
     chromosome = generate_neighbour_solution(chromosome, dead_cells, m, n, num_of_genes)
     fitness = objective_function(chromosome, m, n)
     return chromosome, fitness
@@ -357,7 +357,7 @@ population_fitness = [] # Current generation population fitness
 survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
 crossover_percentage = 80 # Percentage of crossed over chromosomes
 mutation_percentage = 10 # Percentage of mutated chromosomes
-max_generations = 200 # Maximum number of allowed generations
+max_generations = 300 # Maximum number of allowed generations
 do_uniform = True # Specifies if uniform crossover can be chosen randomly
 
 def genetic_algorithm(visualise):
@@ -410,12 +410,12 @@ def genetic_algorithm(visualise):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-# n,m = 20,20
-# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-# survivor_percentage = 10
-# crossover_percentage = 80
-# mutation_percentage = 10
-# do_uniform = True
+n,m = 20,20
+dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+survivor_percentage = 10
+crossover_percentage = 80
+mutation_percentage = 10
+do_uniform = True
 
 # Uncomment this block for test case 3
 # n,m = 25,25
@@ -426,12 +426,12 @@ def genetic_algorithm(visualise):
 # do_uniform = True
 
 # Uncomment this block for test case 4
-n,m = 15,15
-dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
-survivor_percentage = 10
-crossover_percentage = 80
-mutation_percentage = 10
-do_uniform = False
+# n,m = 15,15
+# dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
+# survivor_percentage = 10
+# crossover_percentage = 80
+# mutation_percentage = 10
+# do_uniform = False
 
 # Uncomment this block for test case 5
 # n,m = 20,20
@@ -452,12 +452,9 @@ do_uniform = False
 
 
 if __name__ == '__main__':
-    best_fitnesses = []
-    runtimes = []
-    for i in range(20):
-        _,fitness,runtime = genetic_algorithm(False)
-        best_fitnesses.append(fitness[0])
-        runtimes.append(runtime)
-    print(best_fitnesses)
-    print(runtimes)
+    chromosome, fitness, runtime = genetic_algorithm(True)
+
+    print(chromosome)
+    print(fitness)
+    print(runtime)
 
