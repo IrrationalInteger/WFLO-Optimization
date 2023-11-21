@@ -22,7 +22,7 @@ c1 = 0.8
 c2 = 0.9
 max_iterations = 100
 v_max = 6
-neighbourhood_size = 1
+neighbourhood_size = 10
 
 
 def init_particle():
@@ -68,7 +68,7 @@ def transform_to_tuples(solution):
     tuples_solution = []
     for i in range(0, len(solution)):
         if solution[i] == 1:
-            tuples_solution.append(((i % n) + 0.5, (i // m) + 0.5))
+            tuples_solution.append(((i % m) + 0.5, (i // m) + 0.5))
     return tuples_solution
 
 
@@ -135,7 +135,7 @@ def PSO():
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 results = [
                     executor.submit(update_particle, i, population, velocity_vector, pbest_position, gbest_position,
-                                    population_fitness, pbest_fitness,gbest_fitness , dead_cells_binary) for i in
+                                    population_fitness, pbest_fitness, gbest_fitness, dead_cells_binary) for i in
                     range(population_size)]
                 # wait for all results to be finished
                 for f in concurrent.futures.as_completed(results):
@@ -149,7 +149,7 @@ def PSO():
 
 
 if __name__ == '__main__':
-    best_population, best_fitness, time = PSO()
-    print("best population: ", best_population)
-    print("best fitness: ", best_fitness)
+    bpopulation, bfitness, time = PSO()
+    print("best population: ", bpopulation)
+    print("best fitness: ", bfitness)
     print("time: ", time)
