@@ -16,12 +16,13 @@ from problem import spacing_distance, MAX_WT_number, objective_function, m, n, W
     WT_list_length
 
 # PSO parameters
-population_size = 100
+population_size = 40
 w = 0.5
 c1 = 0.8
 c2 = 0.9
 max_iterations = 100
 v_max = 6
+neighbourhood_size = 1
 
 
 def init_particle():
@@ -34,10 +35,11 @@ def init_particle():
 def init_population():
     population = []
     population_fitness = []
-    velocity_vector = [[random.uniform(-v_max, v_max) for _ in range(m * n)] for _ in range(population_size)]
+    velocity_vector = [[0 for _ in range(m * n)] for _ in range(population_size)]
     pbest_position = []
     pbest_fitness = []
     gbest_position = [[] for _ in range(population_size)]
+    gbest_fitness = [float('inf') for _ in range(population_size)]
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = [executor.submit(init_particle) for _ in range(population_size)]
         for f in concurrent.futures.as_completed(results):
@@ -46,9 +48,11 @@ def init_population():
             pbest_position.append(f.result()[0])
             pbest_fitness.append(f.result()[1][0])
     for i in range(population_size):
-        gbest_position[i] = population[min((i, (i + 1) % population_size, (i - 1 + population_size) % population_size),
-                                           key=lambda x: population_fitness[x][0])].copy()
-    return population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness
+        neighbours = [(x+population_size) % population_size for x in range(-neighbourhood_size, neighbourhood_size+1)]
+        best_fitness_index = min(neighbours, key=lambda x: population_fitness[x][0])
+        gbest_position[i] = population[best_fitness_index].copy()
+        gbest_fitness[i] = population_fitness[best_fitness_index][0]
+    return population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness
 
 
 # function that transforms from list of tuples into list of 0s and 1s
@@ -64,48 +68,53 @@ def transform_to_tuples(solution):
     tuples_solution = []
     for i in range(0, len(solution)):
         if solution[i] == 1:
-            tuples_solution.append(((i // n) + 0.5, (i % m) + 0.5))
+            tuples_solution.append(((i % n) + 0.5, (i // m) + 0.5))
     return tuples_solution
 
 
 def update_particle(i, population, velocity_vector, pbest_position, gbest_position, population_fitness, pbest_fitness,
-                    dead_cells_binary):
+                    gbest_fitness, dead_cells_binary):
+    particle = population[i]
+    particle_velocity = velocity_vector[i]
+
     def is_valid(index):
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if 0 <= index + dx + dy * n <= m*n - 1 and population[i][index + dx + dy * n] == 1:
+                if 0 <= index + dx + dy * n <= m*n - 1 and particle[index + dx + dy * n] == 1:
                     return False
         return True
+
     print("particle: ", i)
     for j in range(m * n):
         r1 = random.random()
         r2 = random.random()
-        velocity_vector[i][j] = (w * velocity_vector[i][j] + c1 * r1 * (pbest_position[i][j] - population[i][j])
-                                 + c2 * r2 * (gbest_position[i][j] - population[i][j]))
-        velocity_vector[i][j] = np.clip(velocity_vector[i][j], -v_max, v_max)
+        particle_velocity[j] = (w * particle_velocity[j] + c1 * r1 * (pbest_position[i][j] - particle[j])
+                                 + c2 * r2 * (gbest_position[i][j] - particle[j]))
+        particle_velocity[j] = np.clip(particle_velocity[j], -v_max, v_max)
         # apply sigmoid function on velocity vector
-        velocity_normalised = 1 / (1 + math.exp(-velocity_vector[i][j]))
-        if random.random() < velocity_normalised and (not dead_cells_binary[j]) and is_valid(j):
-            population[i][j] = 1
+        velocity_normalised = 1 / (1 + math.exp(-particle_velocity[j]))
+        if random.random() < velocity_normalised and dead_cells_binary[j] == 0 and is_valid(j):
+            particle[j] = 1
         else:
-            population[i][j] = 0
-        #print("cell: ", j)
-    population_fitness[i] = objective_function(transform_to_tuples(population[i]), n, m)
+            particle[j] = 0
+    population_fitness[i] = objective_function(transform_to_tuples(particle), n, m)
     print("fitness: ", population_fitness[i][0])
     if population_fitness[i][0] < pbest_fitness[i]:
-        pbest_position[i] = population[i].copy()
+        pbest_position[i] = particle.copy()
         pbest_fitness[i] = population_fitness[i][0]
-    for j in range(i - 1, i + 1):
-        j = j % population_size
-        gbest_position[j] = population[
-            min((j, (j + 1) % population_size, (j - 1 + population_size) % population_size),
-                key=lambda x: population_fitness[x])].copy()
+    for j in range(i - neighbourhood_size, i + neighbourhood_size + 1):
+        j = (j+population_size) % population_size
+        if population_fitness[j][0] < gbest_fitness[i]:
+            gbest_position[i] = population[j].copy()
+            gbest_fitness[i] = population_fitness[j][0]
+    population[i] = particle
+    velocity_vector[i] = particle_velocity
     return i
 
 
 def PSO():
     start = time.perf_counter()
-    population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness = init_population()
+    population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness = init_population()
     dead_cells_binary = transform_to_binary(dead_cells)
     best_fitness = float('inf')
     best_population = []
@@ -120,16 +129,21 @@ def PSO():
         pbest_position = manager.list(pbest_position)
         gbest_position = manager.list(gbest_position)
         pbest_fitness = manager.list(pbest_fitness)
+        gbest_fitness = manager.list(gbest_fitness)
         for i in range(max_iterations):
             print("iteration: ", i)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 results = [
                     executor.submit(update_particle, i, population, velocity_vector, pbest_position, gbest_position,
-                                    population_fitness, pbest_fitness, dead_cells_binary) for i in
+                                    population_fitness, pbest_fitness,gbest_fitness , dead_cells_binary) for i in
                     range(population_size)]
                 # wait for all results to be finished
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
+            for j in range(population_size):
+                if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
+                    best_fitness = population_fitness[j][0]
+                    best_population = population[j].copy()
     end = time.perf_counter()
     return best_population, best_fitness, end - start
 
