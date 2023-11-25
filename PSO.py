@@ -112,9 +112,9 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         pbest_fitness[i] = population_fitness[i][0]
     for j in range(i - neighbourhood_size, i + neighbourhood_size + 1):
         j = (j+population_size) % population_size
-        if population_fitness[j][0] < gbest_fitness[i]:
-            gbest_position[i] = population[j].copy()
-            gbest_fitness[i] = population_fitness[j][0]
+        if population_fitness[i][0] < gbest_fitness[j]:
+            gbest_position[j] = population[i].copy()
+            gbest_fitness[j] = population_fitness[i][0]
 
     population[i] = particle
     velocity_vector[i] = particle_velocity
