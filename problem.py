@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import time
 
 # constraints
-n, m = 15, 15  # grid size n*m
-dead_cells = [(2, 2), (12, 2), (2, 12), (12, 12)]  # no turbines can be placed in these cells
+n, m = 20, 20  # grid size n*m
+dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)] # no turbines can be placed in these cells
 spacing_distance = 3
 WT_max_number = math.ceil(m / spacing_distance + 1) * math.ceil(n / spacing_distance + 1)  # user_defined
 MAX_WT_number = math.ceil(m / spacing_distance + 1) * math.ceil(
