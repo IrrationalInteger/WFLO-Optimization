@@ -19,10 +19,9 @@ from problem import spacing_distance, MAX_WT_number, objective_function, m, n, W
 population_size = 50
 w = 0.792
 c1 = 1.4944
-c2 = 1.8
+c2 = 1.4944
 max_iterations = 200
-v_max = 10000
-neighbourhood_size = 20
+neighbourhood_size = 25
 
 def init_particle():
     solution = generate_random_tuples(WT_list_length, dead_cells, m, n, spacing_distance)
@@ -34,7 +33,7 @@ def init_particle():
 def init_population():
     population = []
     population_fitness = []
-    velocity_vector = [[0 for _ in range(m * n)] for _ in range(population_size)]
+    velocity_vector = [[random.random()*4-1.5 for _ in range(m * n)] for _ in range(population_size)]
     pbest_position = []
     pbest_fitness = []
     gbest_position = [[] for _ in range(population_size)]
@@ -79,20 +78,19 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     def is_valid(index):
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if 0 <= index + dx + dy * n <= m*n - 1 and particle[index + dx + dy * n] == 1:
+                if 0 <= index + dx + dy * n <= m*n - 1 and particle[index + dx + dy * n] > 0.5:
                     return False
         return True
 
     print("particle: ", i)
     for j in range(m * n):
-        if(dead_cells_binary[j] == 1) and is_valid(j):
+        if(dead_cells_binary[j] == 1) or not is_valid(j):
             continue
         r1 = random.random()
         r2 = random.random()
         particle_velocity[j] = (w * particle_velocity[j] + c1 * r1 * (pbest_position[i][j] - particle[j])
                                  + c2 * r2 * (gbest_position[i][j] - particle[j]))
 
-        particle_velocity[j] = np.clip(particle_velocity[j], -v_max, v_max)
 
         # if(is_valid(j)):
         #     continue
