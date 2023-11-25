@@ -25,7 +25,7 @@ wind_speed = 12
 wind_frequency = [1 / 36] * 36
 
 # decision variables
-WT_list_length = 1 # or WT_max_number/2
+WT_list_length = 10 # or WT_max_number/2
 WT_list = generate_random_tuples(WT_list_length, dead_cells, m, n,
                                  spacing_distance)  # example : WT_list = [(7.5, 7.5), (9.5, 3.5), (9.5, 9.5), (6.5, 5.5), (4.5, 2.5), (3.5, 0.5), (7.5, 3.5), (5.5, 7.5), (0.5, 2.5), (4.5, 5.5), (8.5, 5.5)]
 

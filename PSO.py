@@ -16,12 +16,12 @@ from problem import spacing_distance, MAX_WT_number, objective_function, m, n, W
     WT_list_length
 
 # PSO parameters
-population_size = 40
+population_size = 50
 w = 0.792
 c1 = 1.4944
-c2 = 1.4944
-max_iterations = 100
-v_max = 6
+c2 = 1.8
+max_iterations = 200
+v_max = 10000
 neighbourhood_size = 20
 
 def init_particle():
@@ -91,15 +91,20 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         r2 = random.random()
         particle_velocity[j] = (w * particle_velocity[j] + c1 * r1 * (pbest_position[i][j] - particle[j])
                                  + c2 * r2 * (gbest_position[i][j] - particle[j]))
+
         particle_velocity[j] = np.clip(particle_velocity[j], -v_max, v_max)
 
         # if(is_valid(j)):
         #     continue
 
         particle[j] += particle_velocity[j]
+        if particle[j] >2.5:
+            particle[j] = 2.5
+        elif particle[j] <-1.5:
+            particle[j] = -1.5
 
 
-    empty  = all(element < 0.5 for element in particle)
+    empty  = all(element <= 0.5 for element in particle)
     particle[0] = 1 if empty else particle[0]
 
     population_fitness[i] = objective_function(transform_to_tuples(particle), n, m)
