@@ -19,10 +19,10 @@ from problem import spacing_distance, MAX_WT_number, objective_function, m, n, W
 # PSO parameters
 population_size = 50
 w = 0.792
-c1 = 2.5
-c2 = 2.5
+c1 = 1.494
+c2 = 1.494
 max_iterations = 100
-neighbourhood_size = 3
+neighbourhood_size = 10
 
 def add_new_WT(solution, exclusion_list, m, n):
     for i in range(len(solution)):
@@ -50,7 +50,7 @@ def add_new_WT(solution, exclusion_list, m, n):
 
 def init_particle():
     #solution = generate_random_tuples(int(random.uniform(1, math.ceil(m / spacing_distance + 1) * math.ceil(n / spacing_distance + 1))), dead_cells, m, n, spacing_distance)
-    solution = generate_random_tuples(1, dead_cells, m, n, spacing_distance)
+    solution = generate_random_tuples(2, dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
@@ -296,9 +296,9 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     if len(particle) == 0:
         add_new_WT(particle, dead_cells, m, n)
     population_fitness[i] = objective_function(particle, n, m)
-    velocity_vector[i] = [velocity_vector[i][j] for j in range(len(velocity_vector[i]))
-                          if velocity_vector[i][j][0] != '+' and velocity_vector[i][j][0] != '-']
-    velocity_vector[i] = velocity_vector[i][:len(particle)]
+    velocity_vector[i] = [velocity_vector[i][j] if not (velocity_vector[i][j][0] != '+' or velocity_vector[i][j][0] != '-')
+                          else (velocity_vector[i][j][0], 0) for j in range(len(velocity_vector[i]))]
+    # velocity_vector[i] = velocity_vector[i][:len(particle)]
     print("fitness: ", population_fitness[i][0])
     if population_fitness[i][0] < pbest_fitness[i]:
         pbest_position[i] = particle.copy()
