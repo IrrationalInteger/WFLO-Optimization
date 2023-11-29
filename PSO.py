@@ -292,7 +292,7 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     for cell in error_cells:
         for (dx, dy) in lookup_table_dead_space_offset:
             if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
-                if is_valid(math.floor(cell[0]+dx), math.floor(cell[1]+dy)):
+                if is_valid(cell[0]+dx, cell[1]+dy):
                     particle.append((cell[0] + dx, cell[1] + dy))
                     break
     if len(particle) == 0:
