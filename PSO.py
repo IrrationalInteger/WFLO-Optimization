@@ -283,9 +283,9 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         # print(f'j;{j}')
         particle[j] = (((particle[j][0] + velocity_vector[i][j][0] + m - 0.5) % m)+0.5,
                        ((particle[j][1] + velocity_vector[i][j][1] + n - 0.5) % n)+0.5)
-        if particle[j] in dead_cells:
+        if (int(particle[j][0]), int(particle[j][1])) in dead_cells:
             particle[j] = (-100, -100)
-            error_cells.extend(particle[j])
+            error_cells.append(particle[j])
             continue
         calculate_error_cells(particle[j][0], particle[j][1], j)
     particle = [particle[j] for j in range(len(particle)) if particle[j][0] != -100]
