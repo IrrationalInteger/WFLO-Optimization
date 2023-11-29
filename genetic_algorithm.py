@@ -4,8 +4,8 @@ import time
 import random
 import matplotlib
 
-from drawings import draw_iterations_against_solution, draw_solution_genetic, \
-    draw_simulation_genetic, update_plot_genetic
+from drawings import draw_iterations_against_solution, draw_solution_population, \
+    draw_simulation_population, update_plot_population
 from functions import generate_random_tuples
 matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, dead_cells, WT_list_length
@@ -381,7 +381,7 @@ def genetic_algorithm(visualise):
 
     optimal_objective_vs_I = []  # Optimal Objective vs iterations for plotting
     if visualise:
-        ax = draw_simulation_genetic(num_of_generations)
+        ax = draw_simulation_population(num_of_generations)
         time.sleep(
             1)  # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
     for i in range(max_generations):
@@ -390,7 +390,7 @@ def genetic_algorithm(visualise):
             fitness_values = []
             for fitness in new_fitness:
                 fitness_values.append(fitness[0])
-            max, min = update_plot_genetic(ax, i, fitness_values, None if i==0 else max, None if i==0 else min)
+            max, min = update_plot_population(ax, i, fitness_values, None if i == 0 else max, None if i == 0 else min)
         population = new_population
         population_fitness = new_fitness
         for j in range(len(population)):
@@ -405,7 +405,7 @@ def genetic_algorithm(visualise):
         optimal_objective_vs_I.append(best_fitness_yet[0])
 
     if visualise:
-        draw_solution_genetic(best_chromosome_yet, best_fitness_yet[0],dead_cells, m, n)
+        draw_solution_population(best_chromosome_yet, best_fitness_yet[0], dead_cells, m, n)
         draw_iterations_against_solution(optimal_objective_vs_I, True)
 
     end = time.perf_counter()

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Draws a live simulation for genetic algorithm
-def draw_simulation_genetic(x_range):
+def draw_simulation_population(x_range):
     fig, ax = plt.subplots()
     ax.scatter(x_range, [0] * len(x_range))
     ax.set_xlabel('Generation')
@@ -16,10 +16,14 @@ def draw_simulation_genetic(x_range):
     return ax
 
 # Updates the live simulation for genetic algorithm
-def update_plot_genetic( ax, x_value, y_values, max_y=None, min_y=None):
+def update_plot_population(ax, x_value, y_values, max_y=None, min_y=None):
 
     # Normalize y-values
+    if max(y_values) - min(y_values) == 0:
+        y_values[0] = 0.001922
     normalized_y = (np.array(y_values) - min(y_values)) / (max(y_values) - min(y_values))
+
+
 
     # Create a scatter plot
     scatter_plot = ax.scatter([x_value] * len(y_values), y_values, c=normalized_y, cmap='viridis')
@@ -45,7 +49,7 @@ def update_plot_genetic( ax, x_value, y_values, max_y=None, min_y=None):
 
     return current_max_y, current_min_y  # Return updated max and min y-values
 # Draws the final solution for genetic algorithm
-def draw_solution_genetic(solution, fitness, dead_cells, m, n):
+def draw_solution_population(solution, fitness, dead_cells, m, n):
     # Create a white grid
     global grid
     grid = np.ones((m, n, 4))
