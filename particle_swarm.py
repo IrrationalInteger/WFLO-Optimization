@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from drawings import draw_number_of_turbines_against_power_and_objective, draw_iterations_against_solution, \
-    draw_simulation_genetic, update_plot_genetic
+    draw_simulation_population, update_plot_population, draw_solution_population
 from functions import generate_random_tuples
 
 matplotlib.use('TkAgg')
@@ -113,7 +113,7 @@ def add_velocity(list1, list2):
     # Find the minimum length of the two lists
     min_length = min(len(list1_new), len(list2_new))
 
-    # Perform element-wise subtraction up to the minimum length
+    # Perform element-wise addition up to the minimum length
     for i in range(min_length):
         tuple1 = list1_new[i]
         tuple2 = list2_new[i]
@@ -125,10 +125,10 @@ def add_velocity(list1, list2):
     for i in range(min_length, len(list2_new)):
         result.append(list2_new[i])
 
+    # reappend the removed special operators
     for i in range(len(list1)):
         if list1[i][0] == '+' or list1[i][0] == '-':
             result.append(list1[i])
-
     for i in range(len(list2)):
         if list2[i][0] == '+' or list2[i][0] == '-':
             result.append(list2[i])
@@ -151,12 +151,9 @@ def multiply_velocity(list_of_tuples, scalar):
 
     # Check if scalar is less than 0
     if scalar < 1:
-        # Delete half of the tuples randomly
+        # Delete a percentage of the tuples randomly based on the scalar value
         deleted_indices = random.sample(range(len(result)), k=len(result)-int(len(result) * scalar))
-        # print(deleted_indices)
-        # print(result)
         result_copy = []
-
         for i, item in enumerate(result):
             if i in deleted_indices:
                 if item[0] == '+' or item[0] == '-':
@@ -165,17 +162,13 @@ def multiply_velocity(list_of_tuples, scalar):
                     result_copy.append((0, 0))
             else:
                 result_copy.append(item)
-
         result = result_copy
-        # print(result)
-        # print("deleted")
 
-    # Check if scalar is greater than 0
+    # Check if scalar is greater than 1
     elif scalar > 1:
         # Append a number of tuples of the type (0, '+') equal to half the length of the list
-        for _ in range(int(len(result) * (scalar - 1))):
+        for _ in range(max(int(len(result) * (scalar - 1)), 2)):
             result.append(('+', 0))
-
     return result
 
 
@@ -189,15 +182,9 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
                 if (x + dx, y + dy) in particle:
-                    # print("error cell: ", (x + dx, y + dy))
-                    # print(dx, dy)
                     error_cells_new.append((x + dx, y + dy))
         #remove error cells from particle
-        # print("error cells: ", error_cells_new)
         for error_cell in error_cells_new:
-            # print("error cell: ", cell)
-            # print("particle: ", particle)
-            # print(error_cells)
             particle[particle.index(error_cell)] = (-100, -100)
             error_cells.append(error_cell)
         #add (x,y) to its position in j
@@ -212,48 +199,17 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     print("particle: ", i)
     r1 = random.uniform(0, 1)
     r2 = random.uniform(0, 1)
-    # velocity_vector[i] = add_velocity(add_velocity(multiply_velocity(velocity_vector[i], w), multiply_velocity(
-    #     subtract_solutions(pbest_position[i], particle), c1 * r1)), multiply_velocity(
-    #     subtract_solutions(gbest_position[i], particle), c2 * r2))
-    # Assuming the functions add_velocity, multiply_velocity, and subtract_solutions are defined
 
-    # Step 1
     step1_result = multiply_velocity(velocity_vector[i], w)
-    # print("Step 1 Result (multiply_velocity):", step1_result)
-    # print(f"   Parameters: {velocity_vector[i]}, {w}")
-
-    # Step 2
     step2_result = subtract_solutions(pbest_position[i], particle)
-    # print("Step 2 Result (subtract_solutions):", step2_result)
-    # print(f"   Parameters: {pbest_position[i]}, {particle}")
-
-    # Step 3
     step3_result = multiply_velocity(step2_result, c1 * r1)
-    # print("Step 3 Result (multiply_velocity):", step3_result)
-    # print(f"   Parameters: {step2_result}, {c1 * r1}")
-
-    # Step 4
     step4_result = add_velocity(step1_result, step3_result)
-    # print("Step 4 Result (add_velocity):", step4_result)
-    # print(f"   Parameters: {step1_result}, {step3_result}")
-
-    # Step 5
     step5_result = subtract_solutions(gbest_position[i], particle)
-    # print("Step 5 Result (subtract_solutions):", step5_result)
-    # print(f"   Parameters: {gbest_position[i]}, {particle}")
-
-    # Step 6
     step6_result = multiply_velocity(step5_result, c2 * r2)
-    # print("Step 6 Result (multiply_velocity):", step6_result)
-    # print(f"   Parameters: {step5_result}, {c2 * r2}")
-
-    # Final step
     final_result = add_velocity(step4_result, step6_result)
     velocity_vector[i] = final_result
-    # print("Final Result (add_velocity):", final_result)
-    # print(f"   Parameters: {step4_result}, {step6_result}")
-    # print("Updated velocity_vector[{}]: {}".format(i, velocity_vector[i]))
 
+    # Apply all the special operators while fixing constraints
     for j in range(len(velocity_vector[i])):
         if velocity_vector[i][j][0] == 0 and velocity_vector[i][j][1] == 0:
             continue
@@ -273,14 +229,8 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
             if velocity_vector[i][j][1] in particle:
                 particle.remove(velocity_vector[i][j][1])
             continue
-        # if j >= len(particle): # fuck
-        #     continue
         if particle[j][0] == -100 and particle[j][1] == -100:
             continue
-        # print(particle)
-        # print(velocity_vector[i])
-        # print(velocity_vector[i][j])
-        # print(f'j;{j}')
         particle[j] = (((particle[j][0] + velocity_vector[i][j][0] + m - 0.5) % m)+0.5,
                        ((particle[j][1] + velocity_vector[i][j][1] + n - 0.5) % n)+0.5)
         if (int(particle[j][0]), int(particle[j][1])) in dead_cells:
@@ -332,8 +282,7 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     population[i] = particle
     return i
 
-
-def PSO(visualise):
+def particle_swarm(visualise):
     start = time.perf_counter()
     population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness = init_population()
     best_fitness = float('inf')
@@ -343,12 +292,13 @@ def PSO(visualise):
     lookup_table_dead_space_offset = [(x, y) for x in lookup_table_dead_space_offset_x for y in
                                       lookup_table_dead_space_offset_y]
     lookup_table_dead_space_offset.sort(key=lambda pair: abs(pair[0]) + abs(pair[1]))
+    optimal_objective_vs_I = []  # Optimal Objective vs iterations for plotting
     if visualise:
         num_of_generations = []  # Num of generations used for plotting
         for i in range(1, max_iterations + 1):
             num_of_generations.append(i)
-        ax = draw_simulation_genetic(num_of_generations)
-        time.sleep(1)
+        ax = draw_simulation_population(num_of_generations)
+        time.sleep(3)
     for i in range(population_size):
         if population_fitness[i][0] < best_fitness and population_fitness[i][2]:
             best_fitness = population_fitness[i][0]
@@ -368,14 +318,8 @@ def PSO(visualise):
                     executor.submit(update_particle, i, population, velocity_vector, pbest_position, gbest_position,
                                     population_fitness, pbest_fitness, lookup_table_dead_space_offset) for i in
                     range(population_size)]
-                # wait for all results to be finished
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
-            # for j in range(population_size):
-            #     #print("iteration: ", j)
-            #     update_particle(j, population, velocity_vector, pbest_position, gbest_position,
-            #                     population_fitness, pbest_fitness, lookup_table_dead_space_offset)
-
             for k in range(population_size):
                 neighbours = [(x + population_size) % population_size for x in
                               range(-neighbourhood_size, neighbourhood_size + 1)]
@@ -393,14 +337,61 @@ def PSO(visualise):
                 fitness_values = []
                 for fitness in population_fitness:
                     fitness_values.append(fitness[0])
-                myMax, myMin = update_plot_genetic(ax, i, fitness_values, None if i == 0 else myMax, None if i == 0 else myMin)
+                myMax, myMin = update_plot_population(ax, i, fitness_values, None if i == 0 else myMax, None if i == 0 else myMin)
+            optimal_objective_vs_I.append(best_fitness)
 
+    if visualise:
+        draw_solution_population(best_population, best_fitness, dead_cells, m, n)
+        draw_iterations_against_solution(optimal_objective_vs_I, True)
     end = time.perf_counter()
     return best_population, best_fitness, end - start
 
 
+# Test case 1 is run by default
+
+# Uncomment this block for test case 2
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# w = 0.792
+# c1 = 1.4944
+# c2 = 1.4944
+# neighbourhood_size = 2
+
+# Uncomment this block for test case 3
+# n,m = 25,25
+# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# w = 0.792
+# c1 = 1.4944
+# c2 = 1.4944
+# neighbourhood_size = 2
+
+# Uncomment this block for test case 4
+# n,m = 15,15
+# dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
+# w = 0.792
+# c1 = 1.4944
+# c2 = 1.4944
+# neighbourhood_size = 25
+
+# Uncomment this block for test case 5
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# w = 0.792
+# c1 = 1.4944
+# c2 = 1.4944
+# neighbourhood_size = 25
+
+# Uncomment this block for test case 6
+# n,m = 25,25
+# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# w = 0.792
+# c1 = 1.4944
+# c2 = 1.4944
+# neighbourhood_size = 25
+
+
 if __name__ == '__main__':
-    bpopulation, bfitness, time = PSO(True)
+    bpopulation, bfitness, time = particle_swarm(True)
     print("best population: ", bpopulation)
     print("best fitness: ", bfitness)
     print("time: ", time)
