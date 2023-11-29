@@ -284,8 +284,8 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         particle[j] = (((particle[j][0] + velocity_vector[i][j][0] + m - 0.5) % m)+0.5,
                        ((particle[j][1] + velocity_vector[i][j][1] + n - 0.5) % n)+0.5)
         if (int(particle[j][0]), int(particle[j][1])) in dead_cells:
+            error_cells.append((particle[j][0],particle[j][1]))
             particle[j] = (-100, -100)
-            error_cells.append(particle[j])
             continue
         calculate_error_cells(particle[j][0], particle[j][1], j)
     particle = [particle[j] for j in range(len(particle)) if particle[j][0] != -100]
@@ -308,6 +308,18 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         velocity_vector_values = velocity_vector_values[:len(particle)]
     velocity_vector_symbols = velocity_vector[i][length:]
     velocity_vector_symbols = [(velocity_vector_symbols[j][0], 0) for j in range(len(velocity_vector_symbols))]
+    plus_count = 0
+    minus_count = 0
+    for j in range(len(velocity_vector_symbols)):
+        if velocity_vector_symbols[j][0] == '+':
+            plus_count += 1
+        elif velocity_vector_symbols[j][0] == '-':
+            minus_count += 1
+    number_of_symbols_to_remove = min(plus_count, minus_count)
+    for j in range(number_of_symbols_to_remove):
+        velocity_vector_symbols.remove(('+', 0))
+    for j in range(number_of_symbols_to_remove):
+        velocity_vector_symbols.remove(('-', 0))
     velocity_vector[i] = velocity_vector_values + velocity_vector_symbols
     print("fitness: ", population_fitness[i][0])
     if population_fitness[i][0] < pbest_fitness[i]:
@@ -315,6 +327,7 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         pbest_fitness[i] = population_fitness[i][0]
 
     print("Num of Turbines for particle "+str(i), len(particle))
+    print("particle: ", particle)
     particle.sort(key=lambda x: (x[0], x[1]))
     population[i] = particle
     return i
@@ -367,8 +380,9 @@ def PSO(visualise):
                 neighbours = [(x + population_size) % population_size for x in
                               range(-neighbourhood_size, neighbourhood_size + 1)]
                 best_fitness_index = min(neighbours, key=lambda x: population_fitness[x][0])
-                gbest_position[k] = population[best_fitness_index].copy()
-                gbest_fitness[k] = population_fitness[best_fitness_index][0]
+                if population_fitness[best_fitness_index][0] < gbest_fitness[k]:
+                    gbest_position[k] = population[best_fitness_index].copy()
+                    gbest_fitness[k] = population_fitness[best_fitness_index][0]
 
             for j in range(population_size):
                 if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
