@@ -50,7 +50,7 @@ def add_new_WT(solution, exclusion_list, m, n):
 
 def init_particle():
     #solution = generate_random_tuples(int(random.uniform(1, math.ceil(m / spacing_distance + 1) * math.ceil(n / spacing_distance + 1))), dead_cells, m, n, spacing_distance)
-    solution = generate_random_tuples(2, dead_cells, m, n, spacing_distance)
+    solution = generate_random_tuples(random.randint(1, 5), dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
@@ -184,14 +184,13 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     particle = population[i]
     error_cells = []
     def calculate_error_cells(x, y,j):
-        while (x, y) in particle:
-            particle.remove((x, y))
+        particle.pop(j)
         error_cells_new = []
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
                 if (x + dx, y + dy) in particle:
-                    print("error cell: ", (x + dx, y + dy))
-                    print(dx, dy)
+                    # print("error cell: ", (x + dx, y + dy))
+                    # print(dx, dy)
                     error_cells_new.append((x + dx, y + dy))
         #remove error cells from particle
         # print("error cells: ", error_cells_new)
@@ -265,14 +264,17 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
             new_wt = velocity_vector[i][j][1]
             if new_wt not in particle:
                 particle.append(new_wt)
-                calculate_error_cells(new_wt[0], new_wt[1],j)
+                calculate_error_cells(new_wt[0], new_wt[1], len(particle)-1)
+            continue
+        if velocity_vector[i][j][0] == '-' and velocity_vector[i][j][1] == 0:
+            particle[random.randint(0, len(particle) - 1)] = (-100, -100)
             continue
         if velocity_vector[i][j][0] == '-':
             if velocity_vector[i][j][1] in particle:
                 particle.remove(velocity_vector[i][j][1])
             continue
-        if j >= len(particle): # fuck
-            continue
+        # if j >= len(particle): # fuck
+        #     continue
         if particle[j][0] == -100 and particle[j][1] == -100:
             continue
         # print(particle)
@@ -282,7 +284,7 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
         particle[j] = (((particle[j][0] + velocity_vector[i][j][0] + m - 0.5) % m)+0.5,
                        ((particle[j][1] + velocity_vector[i][j][1] + n - 0.5) % n)+0.5)
         if particle[j] in dead_cells:
-            particle.remove(particle[j])
+            particle[j] = (-100, -100)
             error_cells.extend(particle[j])
             continue
         calculate_error_cells(particle[j][0], particle[j][1], j)
@@ -296,9 +298,17 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     if len(particle) == 0:
         add_new_WT(particle, dead_cells, m, n)
     population_fitness[i] = objective_function(particle, n, m)
-    velocity_vector[i] = [velocity_vector[i][j] if not (velocity_vector[i][j][0] != '+' or velocity_vector[i][j][0] != '-')
-                          else (velocity_vector[i][j][0], 0) for j in range(len(velocity_vector[i]))]
-    # velocity_vector[i] = velocity_vector[i][:len(particle)]
+    length = 0
+    for l in range(len(velocity_vector[i])):
+        if velocity_vector[i][l][0] == '+' or velocity_vector[i][l][0] == '-':
+            break
+        length += 1
+    velocity_vector_values = velocity_vector[i][:length]
+    if len(velocity_vector_values) > len(particle):
+        velocity_vector_values = velocity_vector_values[:len(particle)]
+    velocity_vector_symbols = velocity_vector[i][length:]
+    velocity_vector_symbols = [(velocity_vector_symbols[j][0], 0) for j in range(len(velocity_vector_symbols))]
+    velocity_vector[i] = velocity_vector_values + velocity_vector_symbols
     print("fitness: ", population_fitness[i][0])
     if population_fitness[i][0] < pbest_fitness[i]:
         pbest_position[i] = particle.copy()
@@ -348,10 +358,10 @@ def PSO(visualise):
                 # wait for all results to be finished
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
-        #     for j in range(population_size):
-        #         print("iteration: ", j)
-        #         update_particle(j, population, velocity_vector, pbest_position, gbest_position,
-        #                         population_fitness, pbest_fitness, lookup_table_dead_space_offset)
+            # for j in range(population_size):
+            #     #print("iteration: ", j)
+            #     update_particle(j, population, velocity_vector, pbest_position, gbest_position,
+            #                     population_fitness, pbest_fitness, lookup_table_dead_space_offset)
 
             for k in range(population_size):
                 neighbours = [(x + population_size) % population_size for x in
