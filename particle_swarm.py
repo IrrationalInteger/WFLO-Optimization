@@ -22,7 +22,7 @@ w = 0.792
 c1 = 1.4944
 c2 = 1.4944
 max_iterations = 100
-neighbourhood_size = 2
+neighbourhood_size = 10
 
 def add_new_WT(solution, exclusion_list, m, n):
     for i in range(len(solution)):
@@ -49,7 +49,7 @@ def add_new_WT(solution, exclusion_list, m, n):
         solution[i] = (solution[i][0] + 0.5, solution[i][1] + 0.5)
 
 def init_particle():
-    solution = generate_random_tuples(WT_list_length, dead_cells, m, n, spacing_distance)
+    solution = generate_random_tuples(random.randint(1,5), dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
@@ -165,7 +165,7 @@ def multiply_velocity(list_of_tuples, scalar):
 
     if scalar > 1:
         # Append a number of tuples of the type (0, '+') equal to half the length of the list
-        for _ in range(max(int(len(result) * (scalar - 1)), 1)):
+        for _ in range(max(int(len(result) * (scalar - 1)), 2)):
             result.append(('+', 0))
     return result
 
