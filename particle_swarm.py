@@ -165,7 +165,7 @@ def multiply_velocity(list_of_tuples, scalar):
 
     if scalar > 1:
         # Append a number of tuples of the type (0, '+') equal to half the length of the list
-        for _ in range(max(int(len(result) * (scalar - 1)), 2)):
+        for _ in range(max(int(len(result) * (scalar - 1)), 4)):
             result.append(('+', 0))
     return result
 
