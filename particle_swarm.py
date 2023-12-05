@@ -22,7 +22,7 @@ w = 0.792
 c1 = 1.4944
 c2 = 1.4944
 max_iterations = 100
-neighbourhood_size = 10
+neighbourhood_size = 2
 
 def add_new_WT(solution, exclusion_list, m, n):
     for i in range(len(solution)):
@@ -148,7 +148,6 @@ def multiply_velocity(list_of_tuples, scalar):
             # Normal multiplication for regular tuples
             result.append((int(t[0] * scalar), int(t[1] * scalar)))
 
-    # Check if scalar is less than 0
     if scalar < 1:
         # Delete a percentage of the tuples randomly based on the scalar value
         deleted_indices = random.sample(range(len(result)), k=len(result)-int(len(result) * scalar))
