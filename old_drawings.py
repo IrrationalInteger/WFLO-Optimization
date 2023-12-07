@@ -81,7 +81,6 @@ def draw_grid_with_direction(n, m, marked_cells, start, direction, width):
 def draw_grid(n, m, solution):
     # Create a figure and axis
     fig, ax = plt.subplots()
-    plt.subplot(nrows=1, ncolumns=2, index=2)
     # Create the grid
     ax.set_xticks(np.arange(0, m, 1))
     ax.set_yticks(np.arange(0, n, 1))
