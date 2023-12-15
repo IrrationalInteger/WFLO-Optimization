@@ -16,13 +16,13 @@ matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells, \
     WT_list_length
 
-# PSO parameters
-population_size = 50
-w = 0.792
-c1 = 1.4944
-c2 = 1.4944
-max_iterations = 100
-neighbourhood_size = 2
+# Particle swarm parameters
+population_size = 50 # number of particles per iteration
+w = 0.792 # Weight of inertia
+c1 = 1.4944 # Cognitive factor
+c2 = 1.4944 # Social factor
+max_iterations = 100 # Maximum number of allowed iterations
+neighbourhood_size = 2 # Neighbourhood size for each particle to consider the global best
 
 def add_new_WT(solution, exclusion_list, m, n):
     for i in range(len(solution)):
@@ -133,6 +133,7 @@ def add_velocity(list1, list2):
             result.append(list2[i])
 
     return result
+
 
 
 def multiply_velocity(list_of_tuples, scalar):
@@ -283,6 +284,7 @@ def particle_swarm(visualise):
     start = time.perf_counter()
     population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness = init_population()
     best_fitness = float('inf')
+
     best_population = []
     lookup_table_dead_space_offset_x = [x for x in range(-m, m + 1)]
     lookup_table_dead_space_offset_y = [x for x in range(-n, n + 1)]
