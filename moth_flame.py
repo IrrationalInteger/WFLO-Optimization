@@ -29,7 +29,7 @@ def calculate_bound_geometric(t, factor):
 # Moth flame parameters
 population_size = 50  # Number of moths and flames per iteration
 max_iterations = 100  # Maximum number of allowed iterations
-b = 1  # Spiral size coefficient
+b = 0.3  # Spiral size coefficient
 lower_bound = -1  # Lower bound for spiral coefficient
 upper_bound = 1  # Upper bound for spiral coefficient
 calculate_lower_bound = calculate_bound_linear  # Choice of scheduling function
@@ -113,11 +113,10 @@ def calculate_position(moth, flame):
 
     # Perform element-wise position calculation up to the minimum length
     while i < min_length:
-        x = moth[i][0]
-        y = moth[i][1]
-        x += abs(flame[i][0] - moth[i][0]) * math.exp(b * t) * math.cos(
+
+        x = abs(flame[i][0] - moth[i][0]) * math.exp(b * t) * math.cos(
             2 * math.pi * t) + flame[i][0]
-        y += abs(flame[i][1] - moth[i][1]) * math.exp(b * t) * math.cos(
+        y = abs(flame[i][1] - moth[i][1]) * math.exp(b * t) * math.cos(
             2 * math.pi * t) + flame[i][1]
         if x > m - 0.5:
             x = 14.5
@@ -129,7 +128,9 @@ def calculate_position(moth, flame):
             y = 0.5
 
         moth[i] = (x, y)
-        calculate_error_cells(x, y, i)
+        print("LMASFNK",moth[i])
+        print(math.ceil(x) - 0.5, math.ceil(y) - 0.5)
+        calculate_error_cells(math.ceil(x) - 0.5, math.ceil(y) - 0.5, i)
         i += 1
 
     number_of_differences = int((abs(len(flame) - len(moth)) * math.exp(b * t * 2) * math.cos(
