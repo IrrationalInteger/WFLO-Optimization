@@ -17,7 +17,6 @@ from problem import spacing_distance, MAX_WT_number, objective_function, m, n, W
     WT_list_length
 
 
-
 def calculate_bound_linear(t, step):
     return t - step
 
@@ -27,16 +26,13 @@ def calculate_bound_geometric(t, factor):
     return factor * t
 
 
-
 # Moth flame parameters
-population_size = 50 # Number of moths and flames per iteration
-max_iterations = 100 # Maximum number of allowed iterations
-b = 1 # Spiral size coefficient
-lower_bound = -1
-upper_bound = 1
-calculate_lower_bound = calculate_bound_linear # Choice of scheduling function
-
-
+population_size = 50  # Number of moths and flames per iteration
+max_iterations = 100  # Maximum number of allowed iterations
+b = 1  # Spiral size coefficient
+lower_bound = -1  # Lower bound for spiral coefficient
+upper_bound = 1  # Upper bound for spiral coefficient
+calculate_lower_bound = calculate_bound_linear  # Choice of scheduling function
 
 
 def add_new_WT(solution, exclusion_list, m, n):
@@ -63,8 +59,9 @@ def add_new_WT(solution, exclusion_list, m, n):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] + 0.5, solution[i][1] + 0.5)
 
+
 def init_moth():
-    solution = generate_random_tuples(random.randint(1,5), dead_cells, m, n, spacing_distance)
+    solution = generate_random_tuples(random.randint(1, 5), dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
@@ -91,30 +88,59 @@ def calculate_position(moth, flame):
     if not moth:
         return []
 
+
+    error_cells = []
+
+    def calculate_error_cells(x, y, j):
+        moth.pop(j)
+        error_cells_new = []
+        for dx in list(range(-spacing_distance, spacing_distance + 1)):
+            for dy in list(range(-spacing_distance, spacing_distance + 1)):
+                if (x + dx, y + dy) in moth:
+                    error_cells_new.append((x + dx, y + dy))
+        # remove error cells from moth
+        for error_cell in error_cells_new:
+            moth[moth.index(error_cell)] = (-100, -100)
+            error_cells.append(error_cell)
+        # add (x,y) to its position in j
+        moth.insert(j, (x, y))
+        return error_cells
     i = 0
     t = random.uniform(lower_bound, upper_bound)
     # Find the minimum length of the two lists
+    print("im flame",flame)
     min_length = min(len(moth), len(flame))
 
     # Perform element-wise position calculation up to the minimum length
-
     while i < min_length:
         x = moth[i][0]
         y = moth[i][1]
         x += abs(flame[i][0] - moth[i][0]) * math.exp(b * t) * math.cos(
-        2 * math.pi * t) + flame[i][0]
+            2 * math.pi * t) + flame[i][0]
         y += abs(flame[i][1] - moth[i][1]) * math.exp(b * t) * math.cos(
             2 * math.pi * t) + flame[i][1]
-        moth[i] = (x,y)
+        if x > m - 0.5:
+            x = 14.5
+        if y > n - 0.5:
+            y = 14.5
+        if x < 0.5:
+            x = 0.5
+        if y < 0.5:
+            y = 0.5
 
+        moth[i] = (x, y)
+        calculate_error_cells(x, y, i)
+        i += 1
 
-    number_of_differences = (abs(len(flame) - len(moth)) * math.exp(b * t *2) * math.cos(
-        2 * math.pi * t *2))
+    number_of_differences = int((abs(len(flame) - len(moth)) * math.exp(b * t * 2) * math.cos(
+        2 * math.pi * t * 2)))
     # Check if the first list is longer
     if len(moth) > min_length:
-    # Handle the remaining tuples in the first list
+        # Handle the remaining tuples in the first list
         for i in range(min_length, number_of_differences):
             moth[random.randint(0, len(moth) - 1)] = (-100, -100)
+
+
 
 
     # Check if the second list is longer
@@ -122,49 +148,45 @@ def calculate_position(moth, flame):
         # Handle the remaining tuples in the second list
         for i in range(min_length, number_of_differences):
             add_new_WT(moth, dead_cells, m, n)
+    return moth, error_cells
 
-    return
+
+def square_tuple(t):
+    return tuple(math.ceil(x) + 0.5 for x in t)
 
 
 def update_moth(i, population, population_fitness, flames, number_of_flames, lookup_table_dead_space_offset):
     moth = population[i]
-    error_cells = []
-    def calculate_error_cells(x, y,j):
-        moth.pop(j)
-        error_cells_new = []
-        for dx in list(range(-spacing_distance, spacing_distance + 1)):
-            for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in moth:
-                    error_cells_new.append((x + dx, y + dy))
-        #remove error cells from particle
-        for error_cell in error_cells_new:
-            moth[moth.index(error_cell)] = (-100, -100)
-            error_cells.append(error_cell)
-        #add (x,y) to its position in j
-        moth.insert(j, (x, y))
-        return error_cells
+
+
+
     def is_valid(x, y):
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
                 if (x + dx, y + dy) in moth:
                     return False
         return True
+
     print("Moth: ", i)
 
-    moth = calculate_position(population[i], flames[i//(len(population)//number_of_flames)])
+    moth, error_cells = calculate_position(population[i], flames[i // (len(population) // number_of_flames)])
 
     moth = [moth[j] for j in range(len(moth)) if moth[j][0] != -100]
+
     for cell in error_cells:
         for (dx, dy) in lookup_table_dead_space_offset:
             if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
-                if is_valid(cell[0]+dx, cell[1]+dy) and (int(cell[0]+dx), int(cell[1]+dy)) not in dead_cells:
+                if is_valid(cell[0] + dx, cell[1] + dy) and (int(cell[0] + dx), int(cell[1] + dy)) not in dead_cells:
                     moth.append((cell[0] + dx, cell[1] + dy))
                     break
     if len(moth) == 0:
         add_new_WT(moth, dead_cells, m, n)
+
+
+    moth = list(map(lambda x: (math.ceil(x[0]) - 0.5, math.ceil(x[1]) - 0.5), moth))
+
+    print("XD", moth)
     population_fitness[i] = objective_function(moth, n, m)
-
-
 
     print("fitness: ", population_fitness[i][0])
 
@@ -174,7 +196,9 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
     population[i] = moth
     return i
 
+
 def moth_flame(visualise):
+    global lower_bound
     start = time.perf_counter()
     population, population_fitness, flames, flames_fitness = init_population()
     best_fitness = float('inf')
@@ -203,9 +227,17 @@ def moth_flame(visualise):
         flames_fitness = manager.list(flames_fitness)
         for i in range(max_iterations):
             print("iteration: ", i)
+            combined_data = list(zip(flames_fitness, flames))
+
+            # Sort the combined data based on fitness values
+            sorted_data = sorted(combined_data, key=lambda x: x[0])
+
+            # Unpack the sorted data back into separate arrays
+            flames_fitness, flames = zip(*sorted_data)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 results = [
-                    executor.submit(update_moth, i, population, population_fitness, flames, number_of_flames, lookup_table_dead_space_offset) for i in
+                    executor.submit(update_moth, i, population, population_fitness, flames, number_of_flames,
+                                    lookup_table_dead_space_offset) for i in
                     range(population_size)]
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
@@ -214,25 +246,31 @@ def moth_flame(visualise):
                 if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
                     best_fitness = population_fitness[j][0]
                     best_population = population[j].copy()
-            print("best fitness: ", best_fitness)
-
-            number_of_flames = math.floor(((number_of_flames-i)*(number_of_flames-1)/max_iterations)+0.5)
+            number_of_flames = math.floor(((len(population) - i) * (len(population) - 1) / max_iterations) + 0.5)
             flames = []
+            flames_fitness = []
             j = 0
-            while j < len(number_of_flames):
+            while j < len(population):
                 best_fitness_among_group = float('inf')
                 k = j
-                while k<(len(population)//number_of_flames)+j:
-                    if(population_fitness[k]>best_fitness_among_group):
-                        best_fitness_among_group = population_fitness[k]
+                index = 0
+                while k < min(len(population), (len(population) // number_of_flames) + j):
+                    print("j",j)
+                    print("k",k)
+                    if population_fitness[k][0] < best_fitness_among_group:
+                        best_fitness_among_group = population_fitness[k][0]
+                        index = k
                     k += 1
+                flames.append(population[index])
+                flames_fitness.append(best_fitness_among_group)
                 j = k
-            lower_bound = calculate_lower_bound(lower_bound, 1/max_iterations)
-            if(visualise):
+            lower_bound = calculate_lower_bound(lower_bound, 1 / max_iterations)
+            if (visualise):
                 fitness_values = []
                 for fitness in population_fitness:
                     fitness_values.append(fitness[0])
-                myMax, myMin = update_plot_population(ax, i, fitness_values, None if i == 0 else myMax, None if i == 0 else myMin)
+                myMax, myMin = update_plot_population(ax, i, fitness_values, None if i == 0 else myMax,
+                                                      None if i == 0 else myMin)
             optimal_objective_vs_I.append(best_fitness)
 
     if visualise:

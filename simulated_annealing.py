@@ -10,6 +10,25 @@ from drawings import draw_iterations_against_solution, draw_number_of_turbines_a
 matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells
 
+# Linear scheduling formula
+def calculate_T_linear(T, step):
+    return T - step
+
+
+# Geometric scheduling formula
+def calculate_T_geometric(T, factor):
+    return factor * T
+
+
+# SA parameters
+T_initial = 500  # Initial temperature of annealing
+T_final = 0  # Final temperature of annealing
+iteration_per_T = 2  # The number of solutions generated per temperature
+i_max = 500  # Artificial stopping condition
+factor = 1  # Factor used for decreasing temperature. Used as step for linear and factor for geometric.
+fitness_value_scaling_factor = 10000000  # Scaling of fitness for temperature
+calculate_T = calculate_T_linear  # Choice of scheduling function
+
 
 # Adds a new turbine while respecting the spacing distance and dead cells
 def add_new_WT(solution, exclusion_list, m, n):
@@ -53,24 +72,8 @@ def generate_neighbour_solution(solution, exclusion_list, m, n):
     return solution
 
 
-# Linear scheduling formula
-def calculate_T_linear(T, step):
-    return T - step
 
 
-# Geometric scheduling formula
-def calculate_T_geometric(T, factor):
-    return factor * T
-
-
-# SA parameters
-T_initial = 500  # Initial temperature of annealing
-T_final = 0  # Final temperature of annealing
-iteration_per_T = 2  # The number of solutions generated per temperature
-i_max = 500  # Artificial stopping condition
-factor = 1  # Factor used for decreasing temperature. Used as step for linear and factor for geometric.
-fitness_value_scaling_factor = 10000000  # Scaling of fitness for temperature
-calculate_T = calculate_T_linear  # Choice of scheduling function
 
 
 # Performs simulated annealing using the given parameters

@@ -10,7 +10,15 @@ from functions import generate_random_tuples
 matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, dead_cells, WT_list_length
 
-
+# GA parameters
+population_size = 50 # Population size (number of chromosomes per generation)
+population = [] # Current generation population
+population_fitness = [] # Current generation population fitness
+survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
+crossover_percentage = 80 # Percentage of crossed over chromosomes
+mutation_percentage = 10 # Percentage of mutated chromosomes
+max_generations = 300 # Maximum number of allowed generations
+do_uniform = True # Specifies if uniform crossover can be chosen randomly
 
 # Adds a new turbine while respecting the spacing distance and dead cells
 def add_new_WT(solution, exclusion_list, m, n):
@@ -350,15 +358,7 @@ def generate_population(lookup_table_dead_space_offset):
     return new_population, new_fitness
 
 
-# GA parameters
-population_size = 50 # Population size (number of chromosomes per generation)
-population = [] # Current generation population
-population_fitness = [] # Current generation population fitness
-survivor_percentage = 10 # Percentage of chromosomes that survive till next generation
-crossover_percentage = 80 # Percentage of crossed over chromosomes
-mutation_percentage = 10 # Percentage of mutated chromosomes
-max_generations = 300 # Maximum number of allowed generations
-do_uniform = True # Specifies if uniform crossover can be chosen randomly
+
 
 # Performs genetic algorithm using the given parameters
 def genetic_algorithm(visualise):
