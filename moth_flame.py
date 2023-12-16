@@ -108,7 +108,9 @@ def calculate_position(moth, flame):
 
     # Perform element-wise position calculation up to the minimum length
     while i < min_length:
-
+        if moth[i][0] == -100:
+            i += 1
+            continue
         x = abs(flame[i][0] - moth[i][0]) * math.exp(b * t) * math.cos(
             2 * math.pi * t) + flame[i][0]
         x = math.ceil(x) - 0.5
