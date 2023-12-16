@@ -25,7 +25,7 @@ def calculate_bound_linear(t):
 
 # Geometric scheduling formula
 def calculate_bound_geometric(t):
-    return 1 * t
+    return 2 ** (1 / 99) * t
 
 
 calculate_lower_bound = calculate_bound_linear  # Choice of scheduling function
@@ -268,45 +268,37 @@ def moth_flame(visualise):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-n,m = 20,20
-dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-# w = 0.792
-# c1 = 1.4944
-# c2 = 1.4944
-# neighbourhood_size = 2
+# n, m = 20, 20
+# dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
+#               (15, 16), (16, 16), (15, 17), (16, 17)]
+# calculate_lower_bound = calculate_bound_linear
 
 # Uncomment this block for test case 3
-# n,m = 25,25
-# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-# w = 0.792
-# c1 = 1.4944
-# c2 = 1.4944
-# neighbourhood_size = 2
+# n, m = 25, 25
+# dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
+#               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
+#               (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
+#               (18, 17), (19, 17)]
+# calculate_lower_bound = calculate_bound_linear
 
 # Uncomment this block for test case 4
-# n,m = 15,15
-# dead_cells = [(2,2),(12,2),(2,12),(12,12)] # no turbines can be placed in these cells
-# w = 0.792
-# c1 = 1.4944
-# c2 = 1.4944
-# neighbourhood_size = 25
+# n, m = 15, 15
+# dead_cells = [(2, 2), (12, 2), (2, 12), (12, 12)]  # no turbines can be placed in these cells
+# calculate_lower_bound = calculate_bound_geometric
 
 # Uncomment this block for test case 5
-# n,m = 20,20
-# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
-# w = 0.792
-# c1 = 1.4944
-# c2 = 1.4944
-# neighbourhood_size = 25
+# n, m = 20, 20
+# dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
+#               (15, 16), (16, 16), (15, 17), (16, 17)]
+# calculate_lower_bound = calculate_bound_geometric
 
 # Uncomment this block for test case 6
-# n,m = 25,25
-# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
-# w = 0.792
-# c1 = 1.4944
-# c2 = 1.4944
-# neighbourhood_size = 25
-
+# n, m = 25, 25
+# dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
+#               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
+#               (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
+#               (18, 17), (19, 17)]
+# calculate_lower_bound = calculate_bound_geometric
 
 if __name__ == '__main__':
     bpopulation, bfitness, time = moth_flame(True)

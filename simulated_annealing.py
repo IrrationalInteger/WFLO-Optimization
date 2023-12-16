@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells
 from drawings import draw_iterations_against_solution, draw_number_of_turbines_against_power_and_objective
+
 matplotlib.use('TkAgg')
 
 
@@ -268,4 +269,7 @@ def update_grid_annealing(grid, cax, coords_red, coords_blue, blue_trans):
 
 
 if __name__ == "__main__":
-    simulated_annealing(True)
+    bsolution, bfitness, _, _, _, _, time = simulated_annealing(True)
+    print("best solution: ", bsolution)
+    print("best fitness: ", bfitness)
+    print("time: ", time)
