@@ -13,6 +13,7 @@ class WindFarmEnv(gym.Env):
 
     def __init__(self, render_mode=None, x_size=20, y_size=20, dead_cells=None):
         self.dead_cells = [] if dead_cells is None else dead_cells
+        self.initial_dead_cells = dead_cells.copy()
         self._grid_state = np.zeros((x_size, y_size), dtype=int)
         self._solution = []
         self._best_solution = []
@@ -60,6 +61,7 @@ class WindFarmEnv(gym.Env):
     def reset(self, seed=None, options=None):
 
         self._grid_state = np.zeros((self.x_size, self.y_size), dtype=int)
+        self.dead_cells = self.initial_dead_cells.copy()
         for cell in self.dead_cells:
             self._grid_state[cell[0]][cell[1]] = 3
         self._solution = []
@@ -93,6 +95,7 @@ class WindFarmEnv(gym.Env):
         #                 self._grid_state[cell[0] + dx, cell[1] + dy] = 0
         def _update_grid_state_remove(cell):
             self._grid_state = np.zeros((self.x_size, self.y_size), dtype=int)
+            self.dead_cells.append(cell)
             for cell in self.dead_cells:
                 self._grid_state[cell[0]][cell[1]] = 3
             for cell in self._solution:
@@ -129,7 +132,7 @@ class WindFarmEnv(gym.Env):
             else:
                 reward = 0
 
-        terminated = False
+        terminated = all([self._grid_state[x, y] == 3 for x in range(self.x_size) for y in range(self.y_size)])
         # reward = reward+0.1 if terminated else reward
         observation = self._get_obs()
         info = self._get_info()
