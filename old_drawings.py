@@ -8,14 +8,14 @@ matplotlib.use('TkAgg')
 
 def calculate_grid_intersection(start, angle, grid_x, grid_y):
     # angle = angle % 360
-    if (angle == 0):
-        return (grid_x, start[1])
-    if (angle == 90):
-        return (start[0], grid_y)
-    if (angle == 180):
-        return (0, start[1])
-    if (angle == 270):
-        return (start[0], 0)
+    if angle == 0:
+        return grid_x, start[1]
+    if angle == 90:
+        return start[0], grid_y
+    if angle == 180:
+        return 0, start[1]
+    if angle == 270:
+        return start[0], 0
     intersection_points = []
     angle = np.deg2rad(angle)
     cos_theta = np.cos(angle)
@@ -23,22 +23,22 @@ def calculate_grid_intersection(start, angle, grid_x, grid_y):
 
     t = (grid_x - start[0]) / cos_theta
     y = start[1] + (t * sin_theta)
-    if (t > 0 and y > 0 - 1e-5 and y < grid_y + 1e-5):
+    if t > 0 and 0 - 1e-5 < y < grid_y + 1e-5:
         intersection_points.append((grid_x, y))
 
     t = (0 - start[0]) / cos_theta
     y = start[1] + (t * sin_theta)
-    if (t > 0 and y > 0 - 1e-5 and y < grid_y + 1e-5):
+    if t > 0 and 0 - 1e-5 < y < grid_y + 1e-5:
         intersection_points.append((0, y))
 
     t = (grid_y - start[1]) / sin_theta
     x = start[0] + (t * cos_theta)
-    if (t > 0 and x > 0 - 1e-5 and x < grid_y + 1e-5):
+    if t > 0 and 0 - 1e-5 < x < grid_y + 1e-5:
         intersection_points.append((x, grid_y))
 
     t = (0 - start[1]) / sin_theta
     x = start[0] + (t * cos_theta)
-    if (t > 0 and x > 0 - 1e-5 and x < grid_y + 1e-5):
+    if t > 0 and 0 - 1e-5 < x < grid_y + 1e-5:
         intersection_points.append((x, 0))
 
     return intersection_points[0]
@@ -98,6 +98,9 @@ def draw_grid(n, m, solution):
     # Show the plot. The command to invert the y-axis is removed.
     plt.show()
 
+
 if __name__ == "__main__":
-    draw_grid(15,15,  [(0.5, 8.5), (0.5, 14.5), (8.5, 0.5), (8.5, 6.5), (8.5, 14.5), (14.5, 4.5), (0.5, 0.5), (14.5, 0.5), (0.5, 4.5), (4.5, 0.5), (4.5, 4.5), (9.5, 10.5), (4.5, 14.5), (4.5, 8.5), (13.5, 8.5), (13.5, 12.5)]
-)
+    draw_grid(15, 15,
+              [(0.5, 8.5), (0.5, 14.5), (8.5, 0.5), (8.5, 6.5), (8.5, 14.5), (14.5, 4.5), (0.5, 0.5), (14.5, 0.5),
+               (0.5, 4.5), (4.5, 0.5), (4.5, 4.5), (9.5, 10.5), (4.5, 14.5), (4.5, 8.5), (13.5, 8.5), (13.5, 12.5)]
+              )

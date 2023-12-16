@@ -4,11 +4,10 @@ import random
 import matplotlib
 import numpy as np
 from matplotlib import pyplot as plt
-
-from drawings import draw_iterations_against_solution, draw_number_of_turbines_against_power_and_objective
-
-matplotlib.use('TkAgg')
 from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells
+from drawings import draw_iterations_against_solution, draw_number_of_turbines_against_power_and_objective
+matplotlib.use('TkAgg')
+
 
 # Linear scheduling formula
 def calculate_T_linear(T, step):
@@ -16,8 +15,8 @@ def calculate_T_linear(T, step):
 
 
 # Geometric scheduling formula
-def calculate_T_geometric(T, factor):
-    return factor * T
+def calculate_T_geometric(T, factor_inner):
+    return factor_inner * T
 
 
 # SA parameters
@@ -31,22 +30,23 @@ calculate_T = calculate_T_linear  # Choice of scheduling function
 
 
 # Adds a new turbine while respecting the spacing distance and dead cells
-def add_new_WT(solution, exclusion_list, m, n):
+def add_new_WT(solution, exclusion_list, m_inner,
+               n_inner):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] - 0.5, solution[i][1] - 0.5)
 
-    def is_valid(x, y):
+    def is_valid(x_inner, y_inner):
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in solution:
+                if (x_inner + dx, y_inner + dy) in solution:
                     return False
         return True
 
-    i_max = m * n
+    i_max_inner = m_inner * n_inner
     i = 0
-    while i < i_max:
-        x = random.randint(0, m - 1)
-        y = random.randint(0, n - 1)
+    while i < i_max_inner:
+        x = random.randint(0, m_inner - 1)
+        y = random.randint(0, n_inner - 1)
         new_tuple = (x, y)
         if new_tuple not in exclusion_list and is_valid(x, y):
             solution.append((x, y))
@@ -58,22 +58,18 @@ def add_new_WT(solution, exclusion_list, m, n):
 
 # Generates a new solution from the previous one by randomly adding, removing, or moving a single wind turbine while
 # respecting the spacing distance and the dead cells
-def generate_neighbour_solution(solution, exclusion_list, m, n):
+def generate_neighbour_solution(solution, exclusion_list, m_inner, n_inner):
     op = random.randint(1, 2) if len(solution) == MAX_WT_number else random.randint(0, 1) if len(
         solution) == 1 else random.randint(0, 2)
     solution = solution.copy()
     if op == 0:  # op = 0, add a WT at random location
-        add_new_WT(solution, exclusion_list, m, n)
+        add_new_WT(solution, exclusion_list, m_inner, n_inner)
     elif op == 1:  # op = 1, change the location of one WT ????
         solution.pop(random.randint(0, len(solution) - 1))
-        add_new_WT(solution, exclusion_list, m, n)
+        add_new_WT(solution, exclusion_list, m_inner, n_inner)
     else:  # op = 2, remove a random WT
         solution.pop(random.randint(0, len(solution) - 1))
     return solution
-
-
-
-
 
 
 # Performs simulated annealing using the given parameters
@@ -101,9 +97,9 @@ def simulated_annealing(visualise):
             new_fitness, new_power, satisfies = objective_function(new_solution, m, n)
             objective_vs_N[len(current_solution)] = new_fitness if objective_vs_N[
                                                                        len(current_solution)] > new_fitness else \
-            objective_vs_N[len(current_solution)]
+                objective_vs_N[len(current_solution)]
             power_vs_N[len(current_solution)] = new_power if power_vs_N[len(current_solution)] > new_power else \
-            power_vs_N[len(current_solution)]
+                power_vs_N[len(current_solution)]
             # Calculate the delta in fitness
             objective_function_change = new_fitness - current_fitness
             if objective_function_change < 0:  # If negative, then improvement: keep this solution
@@ -118,7 +114,7 @@ def simulated_annealing(visualise):
                 if random_number < probability:  # If greater than random_number then keep
                     current_solution = new_solution
                     current_fitness = new_fitness
-            if current_fitness < best_fitness and satisfies:  # Accept the new solution as optimal iff it has better fitness and also satisifies the power constraint
+            if current_fitness < best_fitness and satisfies:  # Accept the new solution as optimal iff it has better fitness and also satisfies the power constraint
                 best_solution = current_solution
                 best_fitness = current_fitness
             if visualise:
@@ -141,7 +137,7 @@ def simulated_annealing(visualise):
         T_current = calculate_T(T_current, factor)
         i = i + 1
         print(f"T_current : {T_current}")
-    if (visualise):
+    if visualise:
         draw_number_of_turbines_against_power_and_objective(power_vs_N, objective_vs_N)
         draw_iterations_against_solution(objective_vs_I, False)
         draw_iterations_against_solution(optimal_objective_vs_I, True)
@@ -199,15 +195,15 @@ def update_grid_annealing(grid, cax, coords_red, coords_blue, blue_trans):
             grid[x, y, :3] = [0.2, 0.2, 0.2]
             grid[x, y, 3] = 1
     # Define the RGBA values for grey and blue with 50% transparency
-    grey_color = np.array([0.5, 0.5, 0.5, 0.8])
+    np.array([0.5, 0.5, 0.5, 0.8])
     red_color = np.array([1, 0, 0, 0.4])
     blue_color = np.array([0, 0, 1, 0.6])
 
     # Create a copy of the grid representing the current state
-    current_colors = np.copy(grid)
+    np.copy(grid)
 
     # Apply the new coordinates for grey
-    if (coords_red != None):
+    if coords_red is not None:
         for coord in coords_red:
             y, x = int(coord[0]), int(coord[1])
             if 0 <= x < n and 0 <= y < m:
@@ -215,18 +211,18 @@ def update_grid_annealing(grid, cax, coords_red, coords_blue, blue_trans):
                 grid[x, y, 3] = 1
 
     # Apply the new coordinates for blue
-    if (coords_blue != None):
+    if coords_blue is not None:
         for coord in coords_blue:
             y, x = int(coord[0]), int(coord[1])
             if 0 <= x < n and 0 <= y < m:
                 grid[x, y, 3] = 1
 
-                if (np.array_equal(grid[x, y, :3], red_color[:3])):
+                if np.array_equal(grid[x, y, :3], red_color[:3]):
                     grid[x, y, :3] = [1, 0, 0]
                     grid[x, y, 3] = 0.5
 
                 else:
-                    if (blue_trans):
+                    if blue_trans:
                         grid[x, y, 3] = 0.3
                     grid[x, y, :3] = blue_color[:3]
 

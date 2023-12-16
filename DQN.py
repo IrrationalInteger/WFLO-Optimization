@@ -1,19 +1,20 @@
 import numpy as np
 import gymnasium as gym
 from collections import deque
-from problem import spacing_distance, MAX_WT_number, objective_function, m, n, dead_cells, WT_list_length
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 import random
-import time as t
 from datetime import datetime
 
-# n,m = 25,25
-# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+# n,m = 25,25 dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),
+# (18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,
+# 6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
 
-n,m = 20,20
-dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+n, m = 20, 20
+dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
+              (15, 16), (16, 16), (15, 17), (16, 17)]
+
 
 # Define the Deep Q Network
 class DQNAgent:
@@ -42,8 +43,10 @@ class DQNAgent:
     def act(self, state, action_mask):
         if np.random.rand() <= self.epsilon:
             return np.random.choice(np.arange(self.action_size),
-                                    p=np.concatenate((action_mask[:len(action_mask)//2]*0.5 / np.sum(action_mask[:len(action_mask)//2]),
-                                                      action_mask[len(action_mask)//2:]*0.5 / np.sum(action_mask[len(action_mask)//2:]))))
+                                    p=np.concatenate((action_mask[:len(action_mask) // 2] * 0.5 / np.sum(
+                                        action_mask[:len(action_mask) // 2]),
+                                                      action_mask[len(action_mask) // 2:] * 0.5 / np.sum(
+                                                          action_mask[len(action_mask) // 2:]))))
         act_values = self.model.predict(state)[0]
         act_values = np.where(action_mask, act_values, -np.inf)
         return np.argmax(act_values)
@@ -113,7 +116,6 @@ for episode in range(episodes):
     # Train the agent using experience replay
     if len(agent.memory) > batch_size:
         agent.replay(batch_size)
-
 
 agent.model.save(f'trained_model{datetime.now().strftime("%d%m%y%H%M%S")}.keras')
 print("Trained model saved to:", f'trained_model{datetime.now().strftime("%d%m%y%H%M%S")}.keras')

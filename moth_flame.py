@@ -1,30 +1,15 @@
 import concurrent.futures
 import math
-import time
 import random
+import time
 from multiprocessing import Manager
-
 import matplotlib
-import numpy as np
-from matplotlib import pyplot as plt
-
-from drawings import draw_number_of_turbines_against_power_and_objective, draw_iterations_against_solution, \
+from problem import spacing_distance, objective_function, m, n, dead_cells
+from drawings import draw_iterations_against_solution, \
     draw_simulation_population, update_plot_population, draw_solution_population
 from functions import generate_random_tuples
 
 matplotlib.use('TkAgg')
-from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells, \
-    WT_list_length
-
-
-def calculate_bound_linear(t, step):
-    return t - step
-
-
-# Geometric scheduling formula
-def calculate_bound_geometric(t, factor):
-    return factor * t
-
 
 # Moth flame parameters
 population_size = 50  # Number of moths and flames per iteration
@@ -32,25 +17,36 @@ max_iterations = 100  # Maximum number of allowed iterations
 b = 0.3  # Spiral size coefficient
 lower_bound = -1  # Lower bound for spiral coefficient
 upper_bound = 1  # Upper bound for spiral coefficient
+
+
+def calculate_bound_linear(t):
+    return t - 1 / max_iterations
+
+
+# Geometric scheduling formula
+def calculate_bound_geometric(t):
+    return 1 * t
+
+
 calculate_lower_bound = calculate_bound_linear  # Choice of scheduling function
 
 
-def add_new_WT(solution, exclusion_list, m, n):
+def add_new_WT(solution, exclusion_list, m_inner, n_inner):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] - 0.5, solution[i][1] - 0.5)
 
-    def is_valid(x, y):
+    def is_valid(x_inner, y_inner):
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in solution:
+                if (x_inner + dx, y_inner + dy) in solution:
                     return False
         return True
 
-    i_max = m * n
+    i_max = m_inner * n_inner
     i = 0
     while i < i_max:
-        x = random.randint(0, m - 1)
-        y = random.randint(0, n - 1)
+        x = random.randint(0, m_inner - 1)
+        y = random.randint(0, n_inner - 1)
         new_tuple = (x, y)
         if new_tuple not in exclusion_list and is_valid(x, y):
             solution.append((x, y))
@@ -88,27 +84,26 @@ def calculate_position(moth, flame):
     if not moth:
         return []
 
-
     error_cells = []
 
-    def calculate_error_cells(x, y, j):
+    def calculate_error_cells(x_inner, y_inner, j):
         moth.pop(j)
         error_cells_new = []
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in moth:
-                    error_cells_new.append((x + dx, y + dy))
+                if (x_inner + dx, y_inner + dy) in moth:
+                    error_cells_new.append((x_inner + dx, y_inner + dy))
         # remove error cells from moth
         for error_cell in error_cells_new:
             moth[moth.index(error_cell)] = (-100, -100)
             error_cells.append(error_cell)
         # add (x,y) to its position in j
-        moth.insert(j, (x, y))
+        moth.insert(j, (x_inner, y_inner))
         return error_cells
+
     i = 0
     t = random.uniform(lower_bound, upper_bound)
     # Find the minimum length of the two lists
-    print("im flame",flame)
     min_length = min(len(moth), len(flame))
 
     # Perform element-wise position calculation up to the minimum length
@@ -128,8 +123,7 @@ def calculate_position(moth, flame):
             y = 0.5
 
         moth[i] = (x, y)
-        print("LMASFNK",moth[i])
-        print(math.ceil(x) - 0.5, math.ceil(y) - 0.5)
+
         calculate_error_cells(math.ceil(x) - 0.5, math.ceil(y) - 0.5, i)
         i += 1
 
@@ -140,9 +134,6 @@ def calculate_position(moth, flame):
         # Handle the remaining tuples in the first list
         for i in range(min_length, number_of_differences):
             moth[random.randint(0, len(moth) - 1)] = (-100, -100)
-
-
-
 
     # Check if the second list is longer
     elif len(flame) > min_length:
@@ -159,23 +150,15 @@ def square_tuple(t):
 def update_moth(i, population, population_fitness, flames, number_of_flames, lookup_table_dead_space_offset):
     moth = population[i]
 
-
-
     def is_valid(x, y):
-        for dx in list(range(-spacing_distance, spacing_distance + 1)):
-            for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in moth:
+        for dx_inner in list(range(-spacing_distance, spacing_distance + 1)):
+            for dy_inner in list(range(-spacing_distance, spacing_distance + 1)):
+                if (x + dx_inner, y + dy_inner) in moth:
                     return False
         return True
 
-    print("Moth: ", i)
-
-    print(f"i: {i}")
-    print(f"len(population): {len(population)}")
-    print(f"number_of_flames: {number_of_flames}")
-    print(f"len(population) // number_of_flames: {len(population) // number_of_flames}")
-    print(i // (len(population) // number_of_flames))
-    moth, error_cells = calculate_position(population[i], flames[(i // (len(population) // number_of_flames)) % number_of_flames])
+    moth, error_cells = calculate_position(population[i],
+                                           flames[(i // (len(population) // number_of_flames)) % number_of_flames])
 
     moth = [moth[j] for j in range(len(moth)) if moth[j][0] != -100]
 
@@ -188,10 +171,8 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
     if len(moth) == 0:
         add_new_WT(moth, dead_cells, m, n)
 
-
     moth = list(map(lambda x: (math.ceil(x[0]) - 0.5, math.ceil(x[1]) - 0.5), moth))
 
-    print("XD", moth)
     population_fitness[i] = objective_function(moth, n, m)
     moth.sort(key=lambda x: (x[0], x[1]))
 
@@ -204,7 +185,7 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
 
 
 def moth_flame(visualise):
-    global lower_bound
+    global lower_bound, ax
     start = time.perf_counter()
     population, population_fitness, flames, flames_fitness = init_population()
     best_fitness = float('inf')
@@ -249,9 +230,6 @@ def moth_flame(visualise):
                     range(population_size)]
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
-            # for j in range(population_size):
-            #     update_moth(j, population, population_fitness, flames, number_of_flames,
-            #                 lookup_table_dead_space_offset)
 
             for j in range(population_size):
                 if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
@@ -269,12 +247,10 @@ def moth_flame(visualise):
                     flames[flame_index] = population[j].copy()
             flames = flames[:number_of_flames]
             flames_fitness = flames_fitness[:number_of_flames]
-            print("flames: ", flames)
-            print("len(flames): ", len(flames))
-            print("number_of_flames: ", number_of_flames)
-            assert(len(flames) == number_of_flames)
-            lower_bound = calculate_lower_bound(lower_bound, 1 / max_iterations)
-            if (visualise):
+            print("Best Fitness: ", best_fitness)
+            assert (len(flames) == number_of_flames)
+            lower_bound = calculate_lower_bound(lower_bound)
+            if visualise:
                 fitness_values = []
                 for fitness in population_fitness:
                     fitness_values.append(fitness[0])
@@ -292,8 +268,8 @@ def moth_flame(visualise):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-# n,m = 20,20
-# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+n,m = 20,20
+dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
 # w = 0.792
 # c1 = 1.4944
 # c2 = 1.4944
