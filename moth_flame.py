@@ -111,12 +111,14 @@ def calculate_position(moth, flame):
 
         x = abs(flame[i][0] - moth[i][0]) * math.exp(b * t) * math.cos(
             2 * math.pi * t) + flame[i][0]
+        x = math.ceil(x) - 0.5
         y = abs(flame[i][1] - moth[i][1]) * math.exp(b * t) * math.cos(
             2 * math.pi * t) + flame[i][1]
+        y = math.ceil(y) - 0.5
         if x > m - 0.5:
-            x = 14.5
+            x = m - 0.5
         if y > n - 0.5:
-            y = 14.5
+            y = n - 0.5
         if x < 0.5:
             x = 0.5
         if y < 0.5:
@@ -124,7 +126,7 @@ def calculate_position(moth, flame):
 
         moth[i] = (x, y)
 
-        calculate_error_cells(math.ceil(x) - 0.5, math.ceil(y) - 0.5, i)
+        calculate_error_cells(x, y, i)
         i += 1
 
     number_of_differences = int((abs(len(flame) - len(moth)) * math.exp(5 * b * t * 2) * math.cos(
@@ -170,8 +172,6 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
                     break
     if len(moth) == 0:
         add_new_WT(moth, dead_cells, m, n)
-
-    moth = list(map(lambda x: (math.ceil(x[0]) - 0.5, math.ceil(x[1]) - 0.5), moth))
 
     population_fitness[i] = objective_function(moth, n, m)
     moth.sort(key=lambda x: (x[0], x[1]))
