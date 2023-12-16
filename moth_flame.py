@@ -248,6 +248,8 @@ def moth_flame(visualise):
                     best_fitness = population_fitness[j][0]
                     best_population = population[j].copy()
             number_of_flames = math.floor(((len(population) - i) * (len(population) - 1) / max_iterations) + 0.5)
+            if number_of_flames == 0:
+                number_of_flames += 1
             flames = []
             flames_fitness = []
             j = 0
@@ -284,8 +286,8 @@ def moth_flame(visualise):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-# n,m = 20,20
-# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+n,m = 20,20
+dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
 # w = 0.792
 # c1 = 1.4944
 # c2 = 1.4944
@@ -325,7 +327,7 @@ def moth_flame(visualise):
 
 
 if __name__ == '__main__':
-    bpopulation, bfitness, time = moth_flame(True)
+    bpopulation, bfitness, time = moth_flame(False)
     print("best population: ", bpopulation)
     print("best fitness: ", bfitness)
     print("time: ", time)
