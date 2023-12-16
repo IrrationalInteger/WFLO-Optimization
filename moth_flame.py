@@ -127,18 +127,18 @@ def calculate_position(moth, flame):
         calculate_error_cells(math.ceil(x) - 0.5, math.ceil(y) - 0.5, i)
         i += 1
 
-    number_of_differences = int((abs(len(flame) - len(moth)) * math.exp(b * t * 2) * math.cos(
+    number_of_differences = int((abs(len(flame) - len(moth)) * math.exp(5 * b * t * 2) * math.cos(
         2 * math.pi * t * 2)))
     # Check if the first list is longer
     if len(moth) > min_length:
         # Handle the remaining tuples in the first list
-        for i in range(min_length, number_of_differences):
+        for i in range(number_of_differences):
             moth[random.randint(0, len(moth) - 1)] = (-100, -100)
 
     # Check if the second list is longer
     elif len(flame) > min_length:
         # Handle the remaining tuples in the second list
-        for i in range(min_length, number_of_differences):
+        for i in range(number_of_differences):
             add_new_WT(moth, dead_cells, m, n)
     return moth, error_cells
 
