@@ -15,13 +15,13 @@ env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n, render_
 state_size = env.observation_space.shape[0] * env.observation_space.shape[1]
 action_size = env.action_space.n
 
-model = load_model('trained_model071223105036.keras')
+model = load_model('trained_model091223225850.keras')
 
 # Show the model architecture
 model.summary()
 
 play_episodes = 1
-steps_per_episode = 20
+steps_per_episode = 200
 for episode in range(play_episodes):
     state, info = env.reset()
     state = np.reshape(state, [1, state_size])

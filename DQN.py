@@ -24,7 +24,7 @@ class DQNAgent:
         self.gamma = 0.95  # discount factor
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
+        self.epsilon_decay = 0.99
         self.learning_rate = 0.001
         self.model = self._build_model()
 
@@ -41,9 +41,11 @@ class DQNAgent:
 
     def act(self, state, action_mask):
         if np.random.rand() <= self.epsilon:
+            if np.sum(action_mask[:len(action_mask)//2]) == 0 or np.sum(action_mask[len(action_mask)//2:]) == 0:
+                return np.random.choice(np.arange(self.action_size), p=action_mask / np.sum(action_mask))
             return np.random.choice(np.arange(self.action_size),
-                                    p=np.concatenate((action_mask[:len(action_mask)//2]*0.5 / np.sum(action_mask[:len(action_mask)//2]),
-                                                      action_mask[len(action_mask)//2:]*0.5 / np.sum(action_mask[len(action_mask)//2:]))))
+                                    p=np.concatenate((action_mask[:len(action_mask)//2] / np.sum(action_mask[:len(action_mask)//2]) * 0.5,
+                                                      action_mask[len(action_mask)//2:] / np.sum(action_mask[len(action_mask)//2:]) * 0.5)))
         act_values = self.model.predict(state)[0]
         act_values = np.where(action_mask, act_values, -np.inf)
         return np.argmax(act_values)
@@ -69,7 +71,7 @@ gym.envs.registration.register(
 )
 
 # Create and wrap the custom environment
-env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n)
+env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n, render_mode="human")
 state_size = env.observation_space.shape[0] * env.observation_space.shape[1]
 action_size = env.action_space.n
 
@@ -78,8 +80,8 @@ agent = DQNAgent(state_size, action_size)
 
 # Training parameters
 batch_size = 32
-episodes = 1000
-steps_per_episode = 50
+episodes = 500
+steps_per_episode = 100
 
 # Training loop
 for episode in range(episodes):
