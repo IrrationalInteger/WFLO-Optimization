@@ -2,8 +2,9 @@ import numpy as np
 import gymnasium as gym
 from keras.models import load_model
 
-n,m = 20,20
-dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+n, m = 20, 20
+dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
+              (15, 16), (16, 16), (15, 17), (16, 17)]
 
 gym.envs.registration.register(
     id="WindFarm-v0",
@@ -32,7 +33,7 @@ for episode in range(play_episodes):
         env.render()
 
         q_values = model.predict(state)[0]
-        action_mask[len(action_mask)//2:] = False
+        action_mask[len(action_mask) // 2:] = False
         q_values = np.where(action_mask, q_values, -np.inf)
 
         # Choose action without exploration (epsilon=0)

@@ -1,45 +1,42 @@
 import concurrent.futures
 import math
-import time
 import random
+import time
 from multiprocessing import Manager
-
 import matplotlib
-import numpy as np
-from matplotlib import pyplot as plt
-
-from drawings import draw_number_of_turbines_against_power_and_objective, draw_iterations_against_solution, \
+from problem import spacing_distance, objective_function, m, n, dead_cells
+from drawings import draw_iterations_against_solution, \
     draw_simulation_population, update_plot_population, draw_solution_population
 from functions import generate_random_tuples
 
 matplotlib.use('TkAgg')
-from problem import spacing_distance, MAX_WT_number, objective_function, m, n, WT_list, WT_max_number, dead_cells, \
-    WT_list_length
 
 # Particle swarm parameters
-population_size = 50 # number of particles per iteration
-w = 0.792 # Weight of inertia
-c1 = 1.4944 # Cognitive factor
-c2 = 1.4944 # Social factor
-max_iterations = 100 # Maximum number of allowed iterations
-neighbourhood_size = 2 # Neighbourhood size for each particle to consider the global best
+population_size = 50  # number of particles per iteration
+w = 0.792  # Weight of inertia
+c1 = 1.4944  # Cognitive factor
+c2 = 1.4944  # Social factor
+max_iterations = 100  # Maximum number of allowed iterations
+neighbourhood_size = 2  # Neighbourhood size for each particle to consider the global best
 
-def add_new_WT(solution, exclusion_list, m, n):
+
+def add_new_WT(solution, exclusion_list, m_inner, n_inner):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] - 0.5, solution[i][1] - 0.5)
 
-    def is_valid(x, y):
+    def is_valid(x_inner,
+                 y_inner):
         for dx in list(range(-spacing_distance, spacing_distance + 1)):
             for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in solution:
+                if (x_inner + dx, y_inner + dy) in solution:
                     return False
         return True
 
-    i_max = m * n
+    i_max = m_inner * n_inner
     i = 0
     while i < i_max:
-        x = random.randint(0, m - 1)
-        y = random.randint(0, n - 1)
+        x = random.randint(0, m_inner - 1)
+        y = random.randint(0, n_inner - 1)
         new_tuple = (x, y)
         if new_tuple not in exclusion_list and is_valid(x, y):
             solution.append((x, y))
@@ -48,8 +45,9 @@ def add_new_WT(solution, exclusion_list, m, n):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] + 0.5, solution[i][1] + 0.5)
 
+
 def init_particle():
-    solution = generate_random_tuples(random.randint(1,5), dead_cells, m, n, spacing_distance)
+    solution = generate_random_tuples(random.randint(1, 5), dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
@@ -71,7 +69,8 @@ def init_population():
             pbest_position.append(f.result()[0])
             pbest_fitness.append(f.result()[1][0])
     for i in range(population_size):
-        neighbours = [(x+population_size) % population_size for x in range(-neighbourhood_size, neighbourhood_size+1)]
+        neighbours = [(x + population_size) % population_size for x in
+                      range(-neighbourhood_size, neighbourhood_size + 1)]
         best_fitness_index = min(neighbours, key=lambda x: population_fitness[x][0])
         gbest_position[i] = population[best_fitness_index].copy()
         gbest_fitness[i] = population_fitness[best_fitness_index][0]
@@ -135,7 +134,6 @@ def add_velocity(list1, list2):
     return result
 
 
-
 def multiply_velocity(list_of_tuples, scalar):
     if not list_of_tuples:
         return []
@@ -151,7 +149,7 @@ def multiply_velocity(list_of_tuples, scalar):
 
     if scalar < 1:
         # Delete a percentage of the tuples randomly based on the scalar value
-        deleted_indices = random.sample(range(len(result)), k=len(result)-int(len(result) * scalar))
+        deleted_indices = random.sample(range(len(result)), k=len(result) - int(len(result) * scalar))
         result_copy = []
         for i, item in enumerate(result):
             if i in deleted_indices:
@@ -174,26 +172,30 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
                     lookup_table_dead_space_offset):
     particle = population[i]
     error_cells = []
-    def calculate_error_cells(x, y,j):
-        particle.pop(j)
+
+    def calculate_error_cells(x, y, j_inner):
+        particle.pop(j_inner)
         error_cells_new = []
-        for dx in list(range(-spacing_distance, spacing_distance + 1)):
-            for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in particle:
-                    error_cells_new.append((x + dx, y + dy))
-        #remove error cells from particle
+        for \
+                dx_inner in list(range(-spacing_distance, spacing_distance + 1)):
+            for dy_inner in list(range(-spacing_distance, spacing_distance + 1)):
+                if (x + dx_inner, y + dy_inner) in particle:
+                    error_cells_new.append((x + dx_inner, y + dy_inner))
+        # remove error cells from particle
         for error_cell in error_cells_new:
             particle[particle.index(error_cell)] = (-100, -100)
             error_cells.append(error_cell)
-        #add (x,y) to its position in j
-        particle.insert(j, (x, y))
+        # add (x,y) to its position in j
+        particle.insert(j_inner, (x, y))
         return error_cells
+
     def is_valid(x, y):
-        for dx in list(range(-spacing_distance, spacing_distance + 1)):
-            for dy in list(range(-spacing_distance, spacing_distance + 1)):
-                if (x + dx, y + dy) in particle:
+        for dx_inner in list(range(-spacing_distance, spacing_distance + 1)):
+            for dy_inner in list(range(-spacing_distance, spacing_distance + 1)):
+                if (x + dx_inner, y + dy_inner) in particle:
                     return False
         return True
+
     print("particle: ", i)
     r1 = random.uniform(0, 1)
     r2 = random.uniform(0, 1)
@@ -218,7 +220,7 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
             new_wt = velocity_vector[i][j][1]
             if new_wt not in particle:
                 particle.append(new_wt)
-                calculate_error_cells(new_wt[0], new_wt[1], len(particle)-1)
+                calculate_error_cells(new_wt[0], new_wt[1], len(particle) - 1)
             continue
         if velocity_vector[i][j][0] == '-' and velocity_vector[i][j][1] == 0:
             particle[random.randint(0, len(particle) - 1)] = (-100, -100)
@@ -229,10 +231,10 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
             continue
         if particle[j][0] == -100 and particle[j][1] == -100:
             continue
-        particle[j] = (((particle[j][0] + velocity_vector[i][j][0] + m - 0.5) % m)+0.5,
-                       ((particle[j][1] + velocity_vector[i][j][1] + n - 0.5) % n)+0.5)
+        particle[j] = (((particle[j][0] + velocity_vector[i][j][0] + m - 0.5) % m) + 0.5,
+                       ((particle[j][1] + velocity_vector[i][j][1] + n - 0.5) % n) + 0.5)
         if (int(particle[j][0]), int(particle[j][1])) in dead_cells:
-            error_cells.append((particle[j][0],particle[j][1]))
+            error_cells.append((particle[j][0], particle[j][1]))
             particle[j] = (-100, -100)
             continue
         calculate_error_cells(particle[j][0], particle[j][1], j)
@@ -240,15 +242,15 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     for cell in error_cells:
         for (dx, dy) in lookup_table_dead_space_offset:
             if m > math.floor(cell[0] + dx) >= 0 and n > math.floor(cell[1] + dy) >= 0:
-                if is_valid(cell[0]+dx, cell[1]+dy) and (int(cell[0]+dx), int(cell[1]+dy)) not in dead_cells:
+                if is_valid(cell[0] + dx, cell[1] + dy) and (int(cell[0] + dx), int(cell[1] + dy)) not in dead_cells:
                     particle.append((cell[0] + dx, cell[1] + dy))
                     break
     if len(particle) == 0:
         add_new_WT(particle, dead_cells, m, n)
     population_fitness[i] = objective_function(particle, n, m)
     length = 0
-    for l in range(len(velocity_vector[i])):
-        if velocity_vector[i][l][0] == '+' or velocity_vector[i][l][0] == '-':
+    for vel in range(len(velocity_vector[i])):
+        if velocity_vector[i][vel][0] == '+' or velocity_vector[i][vel][0] == '-':
             break
         length += 1
     velocity_vector_values = velocity_vector[i][:length]
@@ -280,7 +282,9 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     population[i] = particle
     return i
 
+
 def particle_swarm(visualise):
+    global ax
     start = time.perf_counter()
     population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness = init_population()
     best_fitness = float('inf')
@@ -332,11 +336,12 @@ def particle_swarm(visualise):
                     best_fitness = population_fitness[j][0]
                     best_population = population[j].copy()
             print("best fitness: ", best_fitness)
-            if(visualise):
+            if visualise:
                 fitness_values = []
                 for fitness in population_fitness:
                     fitness_values.append(fitness[0])
-                myMax, myMin = update_plot_population(ax, i, fitness_values, None if i == 0 else myMax, None if i == 0 else myMin)
+                myMax, myMin = update_plot_population(ax, i, fitness_values, None if i == 0 else myMax,
+                                                      None if i == 0 else myMin)
             optimal_objective_vs_I.append(best_fitness)
 
     if visualise:

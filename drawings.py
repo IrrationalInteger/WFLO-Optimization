@@ -1,8 +1,8 @@
-
 import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
+matplotlib.use('TkAgg')
+
 
 # Draws a live simulation for genetic algorithm
 def draw_simulation_population(x_range):
@@ -15,23 +15,23 @@ def draw_simulation_population(x_range):
     plt.show(block=False)  # Use non-blocking show
     return ax
 
+
 # Updates the live simulation for genetic algorithm
 def update_plot_population(ax, x_value, y_values, max_y=None, min_y=None):
-
     # Normalize y-values
     if max(y_values) - min(y_values) == 0:
         y_values[0] = 0.001922
     normalized_y = (np.array(y_values) - min(y_values)) / (max(y_values) - min(y_values))
-
-
 
     # Create a scatter plot
     scatter_plot = ax.scatter([x_value] * len(y_values), y_values, c=normalized_y, cmap='viridis')
 
     # Update max and min y-values
 
-    current_max_y = max(max_y,max(scatter_plot.get_offsets()[:, 1])) if max_y is not None else max(scatter_plot.get_offsets()[:, 1])
-    current_min_y = min(min_y,min(scatter_plot.get_offsets()[:, 1])) if min_y is not None else min(scatter_plot.get_offsets()[:, 1])
+    current_max_y = max(max_y, max(scatter_plot.get_offsets()[:, 1])) if max_y is not None else max(
+        scatter_plot.get_offsets()[:, 1])
+    current_min_y = min(min_y, min(scatter_plot.get_offsets()[:, 1])) if min_y is not None else min(
+        scatter_plot.get_offsets()[:, 1])
     # Update y-axis limits based on the new data and historical max/min values
     ax.set_ylim(current_min_y, current_max_y)
 
@@ -48,6 +48,8 @@ def update_plot_population(ax, x_value, y_values, max_y=None, min_y=None):
     plt.pause(0.1)
 
     return current_max_y, current_min_y  # Return updated max and min y-values
+
+
 # Draws the final solution for genetic algorithm
 def draw_solution_population(solution, fitness, dead_cells, m, n):
     # Create a white grid
@@ -94,6 +96,7 @@ def draw_solution_population(solution, fitness, dead_cells, m, n):
 
     cax.set_data(grid)  # Update plot data # Update plot data
 
+
 # Plots the number of turbines against the power and objective function values
 def draw_number_of_turbines_against_power_and_objective(power_data, objective_data):
     # Clean from float.inf
@@ -107,18 +110,18 @@ def draw_number_of_turbines_against_power_and_objective(power_data, objective_da
     objective_x, objective_y = zip(*objective_data)
 
     # Create a figure and a subplot
-    fig, ax1 = plt.subplots()
+    fig, ax1inner = plt.subplots()
 
     # Plot the first line with 'power_y' on the left y-axis
     color = 'tab:red'
-    ax1.set_xlabel('Number of turbines')
-    ax1.set_ylabel('Power', color=color)
-    ax1.plot(power_x, power_y, color=color, label='Power')
-    ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set_ylim(bounds[2], bounds[3])  # Set the limits of the left y-axis
+    ax1inner.set_xlabel('Number of turbines')
+    ax1inner.set_ylabel('Power', color=color)
+    ax1inner.plot(power_x, power_y, color=color, label='Power')
+    ax1inner.tick_params(axis='y', labelcolor=color)
+    ax1inner.set_ylim(bounds[2], bounds[3])  # Set the limits of the left y-axis
 
     # Instantiate a second y-axis sharing the same x-axis
-    ax2 = ax1.twinx()
+    ax2 = ax1inner.twinx()
     color = 'tab:blue'
     ax2.set_ylabel('Objective', color=color)
     ax2.plot(objective_x, objective_y, color=color, label='Objective',
@@ -127,7 +130,7 @@ def draw_number_of_turbines_against_power_and_objective(power_data, objective_da
     ax2.set_ylim(bounds[0], bounds[1])  # Set the limits of the right y-axis
 
     # Set the limits of the x-axis
-    ax1.set_xlim(0, len(power_data))
+    ax1inner.set_xlim(0, len(power_data))
 
     # Add a legend
     fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
@@ -139,25 +142,24 @@ def draw_number_of_turbines_against_power_and_objective(power_data, objective_da
 # Plots the number of generated solutions against the objective function
 def draw_iterations_against_solution(objective_data, optimal):
     # Create a figure and a subplot
-    fig, ax1 = plt.subplots()
+    fig, ax1inner = plt.subplots()
     annealing_iterations = len(objective_data)
     # Plot the first line with 'power_y' on the left y-axis
     color = 'tab:red'
-    ax1.set_xlabel('Iterations')
-    ax1.set_ylabel('Optimal Objective Function' if optimal else "Generated Objective Function", color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+    ax1inner.set_xlabel('Iterations')
+    ax1inner.set_ylabel('Optimal Objective Function' if optimal else "Generated Objective Function", color=color)
+    ax1inner.tick_params(axis='y', labelcolor=color)
     print(objective_data)
-    ax1.set_ylim(min(objective_data), max(objective_data))  # Set the limits of the left y-axis
+    ax1inner.set_ylim(min(objective_data), max(objective_data))  # Set the limits of the left y-axis
     objective_data = [(index, t) for index, t in enumerate(objective_data)]
     objective_x, objective_y = zip(*objective_data)
-    ax1.plot(objective_x, objective_y, color=color, label='Objective')
+    ax1inner.plot(objective_x, objective_y, color=color, label='Objective')
 
     # Set the limits of the x-axis
-    ax1.set_xlim(0, annealing_iterations)
+    ax1inner.set_xlim(0, annealing_iterations)
 
     # Add a legend
     fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.9))
 
     # Show the plot
     plt.show()
-
