@@ -188,12 +188,12 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
 
     print("XD", moth)
     population_fitness[i] = objective_function(moth, n, m)
+    moth.sort(key=lambda x: (x[0], x[1]))
 
     print("fitness: ", population_fitness[i][0])
 
     print("Num of Turbines for particle " + str(i), len(moth))
     print("particle: ", moth)
-    moth.sort(key=lambda x: (x[0], x[1]))
     population[i] = moth
     return i
 
@@ -327,7 +327,7 @@ dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),
 
 
 if __name__ == '__main__':
-    bpopulation, bfitness, time = moth_flame(False)
+    bpopulation, bfitness, time = moth_flame(True)
     print("best population: ", bpopulation)
     print("best fitness: ", bfitness)
     print("time: ", time)
