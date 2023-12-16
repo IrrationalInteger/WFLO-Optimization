@@ -170,7 +170,12 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
 
     print("Moth: ", i)
 
-    moth, error_cells = calculate_position(population[i], flames[i // (len(population) // number_of_flames)])
+    print(f"i: {i}")
+    print(f"len(population): {len(population)}")
+    print(f"number_of_flames: {number_of_flames}")
+    print(f"len(population) // number_of_flames: {len(population) // number_of_flames}")
+    print(i // (len(population) // number_of_flames))
+    moth, error_cells = calculate_position(population[i], flames[(i // (len(population) // number_of_flames)) % number_of_flames])
 
     moth = [moth[j] for j in range(len(moth)) if moth[j][0] != -100]
 
@@ -235,6 +240,8 @@ def moth_flame(visualise):
 
             # Unpack the sorted data back into separate arrays
             flames_fitness, flames = zip(*sorted_data)
+            flames_fitness = list(flames_fitness)
+            flames = list(flames)
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 results = [
                     executor.submit(update_moth, i, population, population_fitness, flames, number_of_flames,
@@ -242,31 +249,30 @@ def moth_flame(visualise):
                     range(population_size)]
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
+            # for j in range(population_size):
+            #     update_moth(j, population, population_fitness, flames, number_of_flames,
+            #                 lookup_table_dead_space_offset)
 
             for j in range(population_size):
                 if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
                     best_fitness = population_fitness[j][0]
                     best_population = population[j].copy()
             number_of_flames = math.floor(((len(population) - i) * (len(population) - 1) / max_iterations) + 0.5)
-            if number_of_flames == 0:
-                number_of_flames += 1
-            flames = []
-            flames_fitness = []
-            j = 0
-            while j < len(population):
-                best_fitness_among_group = float('inf')
-                k = j
-                index = 0
-                while k < min(len(population), (len(population) // number_of_flames) + j):
-                    print("j",j)
-                    print("k",k)
-                    if population_fitness[k][0] < best_fitness_among_group:
-                        best_fitness_among_group = population_fitness[k][0]
-                        index = k
-                    k += 1
-                flames.append(population[index])
-                flames_fitness.append(best_fitness_among_group)
-                j = k
+
+            if number_of_flames < 1:
+                number_of_flames = 1
+
+            for j in range(len(population)):
+                flame_index = (j // (len(population) // number_of_flames)) % number_of_flames
+                if population_fitness[j][0] < flames_fitness[flame_index]:
+                    flames_fitness[flame_index] = population_fitness[j][0]
+                    flames[flame_index] = population[j].copy()
+            flames = flames[:number_of_flames]
+            flames_fitness = flames_fitness[:number_of_flames]
+            print("flames: ", flames)
+            print("len(flames): ", len(flames))
+            print("number_of_flames: ", number_of_flames)
+            assert(len(flames) == number_of_flames)
             lower_bound = calculate_lower_bound(lower_bound, 1 / max_iterations)
             if (visualise):
                 fitness_values = []
@@ -286,8 +292,8 @@ def moth_flame(visualise):
 # Test case 1 is run by default
 
 # Uncomment this block for test case 2
-n,m = 20,20
-dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# n,m = 20,20
+# dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
 # w = 0.792
 # c1 = 1.4944
 # c2 = 1.4944
