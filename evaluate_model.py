@@ -14,13 +14,13 @@ model = load_model('trained_model_15x15.keras')
 # model = load_model('trained_model_20x20.keras')
 
 
-# Evaluate model on 20x20
+# Evaluate model on 25x25
 # n, m = 25, 25
 # dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
 #               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
 #               (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
 #               (18, 17), (19, 17)]
-# model = load_model('trained_model_25x25_2.keras')
+# model = load_model('trained_model_25x25.keras')
 
 gym.envs.registration.register(
     id="WindFarm-v0",
