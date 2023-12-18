@@ -9,15 +9,28 @@ import random
 import time as t
 from datetime import datetime
 
-# n,m = 25,25
-# dead_cells = [(5,5),(5,6),(6,5),(6,6),(5,18),(5,19),(6,18),(6,19),(18,5),(19,5),(18,6),(19,6),(18,18),(18,19),(19,18),(19,19),(7,7),(7,6),(7,5),(7,18),(7,19),(18,7),(19,7),(5,7),(6,7),(5,17),(6,17),(7,17),(17,5),(17,6),(17,7),(17,17),(17,18),(17,19),(18,17),(19,17)]
+n, m = 20, 20
+dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
+              (15, 16), (16, 16), (15, 17), (16, 17)]
 
-n,m = 20,20
-dead_cells = [(3,2),(4,2),(3,3),(4,3),(15,2),(16,2),(15,3),(16,3),(3,16),(4,16),(3,17),(4,17),(15,16),(16,16),(15,17),(16,17)]
+# n, m = 25, 25
+# dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
+#               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
+#               (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
+#               (18, 17), (19, 17)]
 
 # Define the Deep Q Network
 class DQNAgent:
+    """
+    A Deep Q Network agent for reinforcement learning.
+    The agent can remember past actions, choose the next action, and update its model based on the rewards received.
+    """
     def __init__(self, state_size, action_size):
+        """
+        Initialize the DQN agent.
+        :param state_size: The size of the state space.
+        :param action_size: The size of the action space.
+        """
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
@@ -29,6 +42,10 @@ class DQNAgent:
         self.model = self._build_model()
 
     def _build_model(self):
+        """
+        Build the neural network model.
+        :return: The compiled model.
+        """
         model = Sequential()
         model.add(Dense(24, input_dim=self.state_size, activation='relu'))
         model.add(Dense(24, activation='relu'))
@@ -37,20 +54,42 @@ class DQNAgent:
         return model
 
     def remember(self, state, action, reward, next_state, done):
+        """
+        Store the experience in the agent's memory.
+        :param state: The current state.
+        :param action: The action taken.
+        :param reward: The reward received.
+        :param next_state: The next state.
+        :param done: Whether the episode is done.
+        """
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state, action_mask):
+        """
+        Choose the next action.
+        :param state: The current state.
+        :param action_mask: A mask that indicates the valid actions.
+        :return: The chosen action.
+        """
+
+        # randomly choose an action with probability epsilon
         if np.random.rand() <= self.epsilon:
+            # add or remove a turbine with equal probability
             if np.sum(action_mask[:len(action_mask)//2]) == 0 or np.sum(action_mask[len(action_mask)//2:]) == 0:
                 return np.random.choice(np.arange(self.action_size), p=action_mask / np.sum(action_mask))
             return np.random.choice(np.arange(self.action_size),
                                     p=np.concatenate((action_mask[:len(action_mask)//2] / np.sum(action_mask[:len(action_mask)//2]) * 0.5,
                                                       action_mask[len(action_mask)//2:] / np.sum(action_mask[len(action_mask)//2:]) * 0.5)))
+        # choose the best action based on the current state
         act_values = self.model.predict(state)[0]
         act_values = np.where(action_mask, act_values, -np.inf)
         return np.argmax(act_values)
 
     def replay(self, batch_size):
+        """
+        Train the model using a batch of experiences from the memory.
+        :param batch_size: The size of the batch to use for training.
+        """
         minibatch = random.sample(self.memory, batch_size)
         states, actions, rewards, next_states, dones = map(np.array, zip(*minibatch))
         for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
@@ -71,7 +110,7 @@ gym.envs.registration.register(
 )
 
 # Create and wrap the custom environment
-env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n, render_mode="human")
+env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n)
 state_size = env.observation_space.shape[0] * env.observation_space.shape[1]
 action_size = env.action_space.n
 
@@ -80,16 +119,17 @@ agent = DQNAgent(state_size, action_size)
 
 # Training parameters
 batch_size = 32
-episodes = 500
-steps_per_episode = 100
+episodes = 150
+steps_per_episode = 200
 
 # Training loop
 for episode in range(episodes):
     state, info = env.reset()
     state = np.reshape(state, [1, state_size])
 
+    # action mask is used to mask out invalid actions
     action_mask = info["action_mask"]
-    for time in range(steps_per_episode):  # You can adjust the maximum number of steps per episode
+    for time in range(steps_per_episode):
         env.render()
 
         # Choose action
@@ -106,8 +146,6 @@ for episode in range(episodes):
         # Update the current state
         state = next_state
         # If the episode is done, break from the loop
-        # print(info)
-        # t.sleep(2)
         if done or time == steps_per_episode - 1 or sum(action_mask) == 0:
             print("episode: {}/{}".format(episode, episodes))
             break
