@@ -12,11 +12,15 @@ import matplotlib.pyplot as plt
 
 
 # Model is trained on 15x15 by default
+episodes = 150
+steps_per_episode = 300
 
 # Train model on 20x20
 # n, m = 20, 20
 # dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
 #               (15, 16), (16, 16), (15, 17), (16, 17)]
+# episodes = 150
+# steps_per_episode = 100
 
 # Train model on 25x25
 # n, m = 25, 25
@@ -24,6 +28,9 @@ import matplotlib.pyplot as plt
 #               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
 #               (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
 #               (18, 17), (19, 17)]
+# episodes = 40
+# steps_per_episode = 300
+
 
 # Define the Deep Q Network
 class DQNAgent:
@@ -130,8 +137,6 @@ agent = DQNAgent(state_size, action_size)
 
 # Training parameters
 batch_size = 32
-episodes = 150
-steps_per_episode = 300
 all_rewards = []
 all_losses = []
 
