@@ -8,11 +8,17 @@ from keras.optimizers import Adam
 import random
 import time as t
 from datetime import datetime
+import matplotlib.pyplot as plt
 
-n, m = 20, 20
-dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
-              (15, 16), (16, 16), (15, 17), (16, 17)]
 
+# Model is trained on 15x15 by default
+
+# Train model on 20x20
+# n, m = 20, 20
+# dead_cells = [(3, 2), (4, 2), (3, 3), (4, 3), (15, 2), (16, 2), (15, 3), (16, 3), (3, 16), (4, 16), (3, 17), (4, 17),
+#               (15, 16), (16, 16), (15, 17), (16, 17)]
+
+# Train model on 25x25
 # n, m = 25, 25
 # dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
 #               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
@@ -92,6 +98,7 @@ class DQNAgent:
         """
         minibatch = random.sample(self.memory, batch_size)
         states, actions, rewards, next_states, dones = map(np.array, zip(*minibatch))
+        total_loss = 0  # Initialize total loss for the batch
         for state, action, reward, next_state, done in zip(states, actions, rewards, next_states, dones):
             target = reward
             if not done:
@@ -99,8 +106,12 @@ class DQNAgent:
             target_f = self.model.predict(state)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
+            history = self.model.fit(state, target_f, epochs=1, verbose=0)
+            total_loss += history.history['loss'][0]
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+        average_loss = total_loss / len(minibatch)
+        return average_loss
 
 
 gym.envs.registration.register(
@@ -119,14 +130,17 @@ agent = DQNAgent(state_size, action_size)
 
 # Training parameters
 batch_size = 32
-episodes = 150
+episodes = 15
 steps_per_episode = 200
+all_rewards = []
+all_losses = []
 
 # Training loop
 for episode in range(episodes):
     state, info = env.reset()
     state = np.reshape(state, [1, state_size])
-
+    action_mask = info["action_mask"]
+    total_reward = 0
     # action mask is used to mask out invalid actions
     action_mask = info["action_mask"]
     for time in range(steps_per_episode):
@@ -146,44 +160,47 @@ for episode in range(episodes):
         # Update the current state
         state = next_state
         # If the episode is done, break from the loop
+        total_reward += reward
+        all_rewards.append(reward)  # Record reward
+
         if done or time == steps_per_episode - 1 or sum(action_mask) == 0:
-            print("episode: {}/{}".format(episode, episodes))
             break
 
-    # Train the agent using experience replay
-    if len(agent.memory) > batch_size:
-        agent.replay(batch_size)
+    episode_rewards.append(total_reward)
+    episode_steps.append(steps)
+    epsilon_values.append(agent.epsilon)
 
+    if len(agent.memory) > batch_size:
+        average_loss = agent.replay(batch_size)
+        all_losses.append(average_loss)  # Record loss
+
+    print(f"Episode: {episode}/{episodes}, Reward: {total_reward}, Steps: {steps}, Epsilon: {agent.epsilon}, Average Loss: {average_loss if episode_losses else 'N/A'}")
+
+
+plt.figure(figsize=(12, 5))
+
+# Plot rewards
+plt.subplot(1, 2, 1)
+plt.plot(all_rewards)
+plt.title('Rewards per Step')
+plt.xlabel('Step')
+plt.ylabel('Reward')
+
+# Plot losses
+plt.subplot(1, 2, 2)
+plt.plot(all_losses)
+plt.title('Loss per Training Step')
+plt.xlabel('Training Step')
+plt.ylabel('Loss')
+
+plt.tight_layout()
+plt.show()
+
+print(all_rewards)
+print(all_losses)
 
 agent.model.save(f'trained_model{datetime.now().strftime("%d%m%y%H%M%S")}.keras')
 print("Trained model saved to:", f'trained_model{datetime.now().strftime("%d%m%y%H%M%S")}.keras')
-
-play_episodes = 1
-for episode in range(play_episodes):
-    state, info = env.reset()
-    state = np.reshape(state, [1, state_size])
-
-    action_mask = info["action_mask"]
-    agent.epsilon = 0
-    for time in range(steps_per_episode):
-        env.render()
-
-        # Choose action
-        action = agent.act(state, action_mask)
-
-        # Take the chosen action and observe the next state and reward
-        next_state, reward, done, _, info = env.step(action)
-        action_mask = info["action_mask"]
-        next_state = np.reshape(next_state, [1, state_size])
-
-        # Update the current state
-        state = next_state
-        # If the episode is done, break from the loop
-        if done or time == steps_per_episode - 1 or sum(action_mask) == 0:
-            print("episode: {}/{}".format(episode, play_episodes))
-            print(info["best_solution"])
-            print(info["best_fitness_value"])
-            break
 
 # Close the environment after training
 env.close()

@@ -244,20 +244,3 @@ class WindFarmEnv(gym.Env):
         if self.window is not None:
             pygame.display.quit()
             pygame.quit()
-
-if __name__ == "__main__":
-    gym.envs.registration.register(
-        id="WindFarm-v0",
-        entry_point="reinforcement_learning_environment.envs:WindFarmEnv",
-        max_episode_steps=500,
-    )
-
-    # Create and wrap the custom environment
-    env = gym.make('WindFarm-v0', dead_cells=[(1,1)], x_size=20, y_size=20, render_mode="rgb_array")
-    env.reset()
-    env.step(0)
-    env.step(60)
-    env.step(400)
-    env.render()
-    while True:
-        pass
