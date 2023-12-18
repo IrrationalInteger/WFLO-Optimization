@@ -19,11 +19,11 @@ import matplotlib.pyplot as plt
 #               (15, 16), (16, 16), (15, 17), (16, 17)]
 
 # Train model on 25x25
-# n, m = 25, 25
-# dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
-#               (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
-#               (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
-#               (18, 17), (19, 17)]
+n, m = 25, 25
+dead_cells = [(5, 5), (5, 6), (6, 5), (6, 6), (5, 18), (5, 19), (6, 18), (6, 19), (18, 5), (19, 5), (18, 6), (19, 6),
+              (18, 18), (18, 19), (19, 18), (19, 19), (7, 7), (7, 6), (7, 5), (7, 18), (7, 19), (18, 7), (19, 7),
+              (5, 7), (6, 7), (5, 17), (6, 17), (7, 17), (17, 5), (17, 6), (17, 7), (17, 17), (17, 18), (17, 19),
+              (18, 17), (19, 17)]
 
 # Define the Deep Q Network
 class DQNAgent:
@@ -130,8 +130,8 @@ agent = DQNAgent(state_size, action_size)
 
 # Training parameters
 batch_size = 32
-episodes = 15
-steps_per_episode = 200
+episodes = 40
+steps_per_episode = 300
 all_rewards = []
 all_losses = []
 
@@ -161,46 +161,65 @@ for episode in range(episodes):
         state = next_state
         # If the episode is done, break from the loop
         total_reward += reward
-        all_rewards.append(reward)  # Record reward
 
         if done or time == steps_per_episode - 1 or sum(action_mask) == 0:
             break
 
-    episode_rewards.append(total_reward)
-    episode_steps.append(steps)
-    epsilon_values.append(agent.epsilon)
-
     if len(agent.memory) > batch_size:
         average_loss = agent.replay(batch_size)
         all_losses.append(average_loss)  # Record loss
+    all_rewards.append(total_reward)  # Record reward
 
-    print(f"Episode: {episode}/{episodes}, Reward: {total_reward}, Steps: {steps}, Epsilon: {agent.epsilon}, Average Loss: {average_loss if episode_losses else 'N/A'}")
+    print(f"Episode: {episode}/{episodes}, Reward: {total_reward}, Epsilon: {agent.epsilon}")
+
+# Calculate metrics
+total_reward = np.sum(all_rewards)
+average_reward = np.mean(all_rewards)
+max_reward = np.max(all_rewards)
+min_reward = np.min(all_rewards)
+cumulative_rewards = np.cumsum(all_rewards)
+
+total_loss = np.sum(all_losses)
+average_loss = np.mean(all_losses)
+max_loss = np.max(all_losses)
+min_loss = np.min(all_losses)
+std_dev_rewards = np.std(all_rewards)
+std_dev_losses = np.std(all_losses)
+
+# Display metrics
+print("Reward Metrics:")
+print(f"Total Reward: {total_reward}")
+print(f"Average Reward: {average_reward}")
+print(f"Max Reward: {max_reward}")
+print(f"Min Reward: {min_reward}")
 
 
-plt.figure(figsize=(12, 5))
-
-# Plot rewards
-plt.subplot(1, 2, 1)
-plt.plot(all_rewards)
-plt.title('Rewards per Step')
-plt.xlabel('Step')
-plt.ylabel('Reward')
-
-# Plot losses
-plt.subplot(1, 2, 2)
-plt.plot(all_losses)
-plt.title('Loss per Training Step')
-plt.xlabel('Training Step')
-plt.ylabel('Loss')
-
-plt.tight_layout()
+# Plotting the cumulative reward
+plt.figure(figsize=(6, 5))
+plt.plot(cumulative_rewards)
+plt.title('Cumulative Reward Over Time')
+plt.xlabel('Episode')
+plt.ylabel('Cumulative Reward')
 plt.show()
 
-print(all_rewards)
-print(all_losses)
+# First plot: Rewards per Step
+plt.figure(figsize=(6, 5))
+plt.plot(all_rewards)
+plt.title('Rewards per Training Episode')
+plt.xlabel('Training Episode')
+plt.ylabel('Reward')
+plt.show()
 
-agent.model.save(f'trained_model{datetime.now().strftime("%d%m%y%H%M%S")}.keras')
-print("Trained model saved to:", f'trained_model{datetime.now().strftime("%d%m%y%H%M%S")}.keras')
+# Second plot: Loss per Training Step
+plt.figure(figsize=(6, 5))
+plt.plot(all_losses)
+plt.title('Loss per Training Episode')
+plt.xlabel('Training Episode')
+plt.ylabel('Loss')
+plt.show()
+
+agent.model.save(f'trained_model_{m}x{n}.keras')
+print("Trained model saved to:", f'trained_model_{m}x{n}.keras')
 
 # Close the environment after training
 env.close()
