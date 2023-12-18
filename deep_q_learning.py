@@ -121,7 +121,7 @@ gym.envs.registration.register(
 )
 
 # Create and wrap the custom environment
-env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n)
+env = gym.make('WindFarm-v0', dead_cells=dead_cells, x_size=m, y_size=n, render_mode="human")
 state_size = env.observation_space.shape[0] * env.observation_space.shape[1]
 action_size = env.action_space.n
 
