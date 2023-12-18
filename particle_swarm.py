@@ -45,14 +45,14 @@ def add_new_WT(solution, exclusion_list, m_inner, n_inner):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] + 0.5, solution[i][1] + 0.5)
 
-
+# Initialize a new particle in the population
 def init_particle():
     solution = generate_random_tuples(random.randint(1, 5), dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
 
-
+# Initialize the population
 def init_population():
     population = []
     population_fitness = []
@@ -76,7 +76,7 @@ def init_population():
         gbest_fitness[i] = population_fitness[best_fitness_index][0]
     return population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness
 
-
+# Subtract two solutions from each other with a custom operator
 def subtract_solutions(list1, list2):
     result = []
 
@@ -103,7 +103,7 @@ def subtract_solutions(list1, list2):
 
     return result
 
-
+# Add two solutions to each other with a custom operator
 def add_velocity(list1, list2):
     result = []
     list1_new = [list1[i] for i in range(len(list1)) if list1[i][0] != '+' and list1[i][0] != '-']
@@ -133,7 +133,7 @@ def add_velocity(list1, list2):
 
     return result
 
-
+# Multiply a solution by a scalar with a custom operator
 def multiply_velocity(list_of_tuples, scalar):
     if not list_of_tuples:
         return []
@@ -167,12 +167,13 @@ def multiply_velocity(list_of_tuples, scalar):
             result.append(('+', 0))
     return result
 
-
+# Update the position of each particle
 def update_particle(i, population, velocity_vector, pbest_position, gbest_position, population_fitness, pbest_fitness,
                     lookup_table_dead_space_offset):
     particle = population[i]
     error_cells = []
 
+    # Aggregates all the turbines that violate constraints in a lookup table
     def calculate_error_cells(x, y, j_inner):
         particle.pop(j_inner)
         error_cells_new = []
@@ -282,14 +283,14 @@ def update_particle(i, population, velocity_vector, pbest_position, gbest_positi
     population[i] = particle
     return i
 
-
+# Performs particle swarm algorithm using the given parameters
 def particle_swarm(visualise):
     global ax
     start = time.perf_counter()
-    population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness = init_population()
-    best_fitness = float('inf')
-
-    best_population = []
+    population, population_fitness, velocity_vector, pbest_position, gbest_position, pbest_fitness, gbest_fitness = init_population() # Initialize a population
+    best_fitness = float('inf') # Record the best fitness during running
+    best_population = []  # Record the best particle during running
+    # Create the lookup table early and pass it to save on CPU
     lookup_table_dead_space_offset_x = [x for x in range(-m, m + 1)]
     lookup_table_dead_space_offset_y = [x for x in range(-n, n + 1)]
     lookup_table_dead_space_offset = [(x, y) for x in lookup_table_dead_space_offset_x for y in
@@ -301,11 +302,12 @@ def particle_swarm(visualise):
         for i in range(1, max_iterations + 1):
             num_of_generations.append(i)
         ax = draw_simulation_population(num_of_generations)
-        time.sleep(3)
+        time.sleep(3) # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
     for i in range(population_size):
         if population_fitness[i][0] < best_fitness and population_fitness[i][2]:
             best_fitness = population_fitness[i][0]
             best_population = population[i].copy()
+    # Use manager for lists across processes
     with Manager() as manager:
         population = manager.list(population)
         population_fitness = manager.list(population_fitness)
@@ -323,6 +325,7 @@ def particle_swarm(visualise):
                     range(population_size)]
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
+            # Calculate global bests according to the neighbourhood size
             for k in range(population_size):
                 neighbours = [(x + population_size) % population_size for x in
                               range(-neighbourhood_size, neighbourhood_size + 1)]
@@ -330,7 +333,7 @@ def particle_swarm(visualise):
                 if population_fitness[best_fitness_index][0] < gbest_fitness[k]:
                     gbest_position[k] = population[best_fitness_index].copy()
                     gbest_fitness[k] = population_fitness[best_fitness_index][0]
-
+            # Record the best fitness that satisfies the power constraint
             for j in range(population_size):
                 if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
                     best_fitness = population_fitness[j][0]

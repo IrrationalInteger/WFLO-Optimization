@@ -18,7 +18,7 @@ b = 0.3  # Spiral size coefficient
 lower_bound = -1  # Lower bound for spiral coefficient
 upper_bound = 1  # Upper bound for spiral coefficient
 
-
+# Linear scheduling formula
 def calculate_bound_linear(t):
     return t - 1 / max_iterations
 
@@ -55,14 +55,14 @@ def add_new_WT(solution, exclusion_list, m_inner, n_inner):
     for i in range(len(solution)):
         solution[i] = (solution[i][0] + 0.5, solution[i][1] + 0.5)
 
-
+# Initialize a new moth in the population
 def init_moth():
     solution = generate_random_tuples(random.randint(1, 5), dead_cells, m, n, spacing_distance)
     fitness = objective_function(solution, n, m)
     solution.sort(key=lambda x: (x[0], x[1]))
     return solution, fitness
 
-
+# Initialize the population
 def init_population():
     population = []
     population_fitness = []
@@ -79,13 +79,14 @@ def init_population():
 
     return population, population_fitness, flames, flames_fitness
 
-
+# Calculate the new position of each moth
 def calculate_position(moth, flame):
     if not moth:
         return []
 
     error_cells = []
 
+    # Aggregates all the turbines that violate constraints in a lookup table
     def calculate_error_cells(x_inner, y_inner, j):
         moth.pop(j)
         error_cells_new = []
@@ -125,14 +126,14 @@ def calculate_position(moth, flame):
             x = 0.5
         if y < 0.5:
             y = 0.5
-
         moth[i] = (x, y)
-
         calculate_error_cells(x, y, i)
         i += 1
 
+    # Use a custom form of the position formula for the number of turbines decision variable
     number_of_differences = int((abs(len(flame) - len(moth)) * math.exp(5 * b * t * 2) * math.cos(
         2 * math.pi * t * 2)))
+
     # Check if the first list is longer
     if len(moth) > min_length:
         # Handle the remaining tuples in the first list
@@ -147,10 +148,8 @@ def calculate_position(moth, flame):
     return moth, error_cells
 
 
-def square_tuple(t):
-    return tuple(math.ceil(x) + 0.5 for x in t)
 
-
+# Update the position of each moth
 def update_moth(i, population, population_fitness, flames, number_of_flames, lookup_table_dead_space_offset):
     moth = population[i]
 
@@ -186,13 +185,15 @@ def update_moth(i, population, population_fitness, flames, number_of_flames, loo
     return i
 
 
+# Performs moth flame algorithm using the given parameters
 def moth_flame(visualise):
     global lower_bound, ax
     start = time.perf_counter()
-    population, population_fitness, flames, flames_fitness = init_population()
-    best_fitness = float('inf')
-    best_population = []
+    population, population_fitness, flames, flames_fitness = init_population() # Initialize a population
+    best_fitness = float('inf') # Record the best fitness during running
+    best_population = [] # Record the best moth during running
     number_of_flames = population_size
+    # Create the lookup table early and pass it to save on CPU
     lookup_table_dead_space_offset_x = [x for x in range(-m, m + 1)]
     lookup_table_dead_space_offset_y = [x for x in range(-n, n + 1)]
     lookup_table_dead_space_offset = [(x, y) for x in lookup_table_dead_space_offset_x for y in
@@ -204,23 +205,21 @@ def moth_flame(visualise):
         for i in range(1, max_iterations + 1):
             num_of_generations.append(i)
         ax = draw_simulation_population(num_of_generations)
-        time.sleep(3)
+        time.sleep(3) # Delay to allow grid to properly initialize. May need to rerun code multiple times for it to work
     for i in range(population_size):
         if population_fitness[i][0] < best_fitness and population_fitness[i][2]:
             best_fitness = population_fitness[i][0]
             best_population = population[i].copy()
+    # Use manager for lists across processes
     with Manager() as manager:
         population = manager.list(population)
         population_fitness = manager.list(population_fitness)
         flames = manager.list(flames)
         flames_fitness = manager.list(flames_fitness)
         for i in range(max_iterations):
-            print("iteration: ", i)
             combined_data = list(zip(flames_fitness, flames))
-
             # Sort the combined data based on fitness values
             sorted_data = sorted(combined_data, key=lambda x: x[0])
-
             # Unpack the sorted data back into separate arrays
             flames_fitness, flames = zip(*sorted_data)
             flames_fitness = list(flames_fitness)
@@ -232,16 +231,17 @@ def moth_flame(visualise):
                     range(population_size)]
                 for f in concurrent.futures.as_completed(results):
                     print("finished: ", f.result())
-
+            # Record the best fitness that satisfies the power constraint
             for j in range(population_size):
                 if population_fitness[j][0] < best_fitness and population_fitness[j][2]:
                     best_fitness = population_fitness[j][0]
                     best_population = population[j].copy()
+            # Calculate the new number of flames adaptively
             number_of_flames = math.floor(((len(population) - i) * (len(population) - 1) / max_iterations) + 0.5)
-
             if number_of_flames < 1:
                 number_of_flames = 1
 
+            # Assign the new flame based on even division of moth groups
             for j in range(len(population)):
                 flame_index = (j // (len(population) // number_of_flames)) % number_of_flames
                 if population_fitness[j][0] < flames_fitness[flame_index]:
@@ -250,7 +250,7 @@ def moth_flame(visualise):
             flames = flames[:number_of_flames]
             flames_fitness = flames_fitness[:number_of_flames]
             print("Best Fitness: ", best_fitness)
-            assert (len(flames) == number_of_flames)
+            # Increase the range of t generation by decreasing the lower bound adaptively
             lower_bound = calculate_lower_bound(lower_bound)
             if visualise:
                 fitness_values = []
@@ -285,7 +285,7 @@ def moth_flame(visualise):
 
 # Uncomment this block for test case 4
 # n, m = 15, 15
-# dead_cells = [(2, 2), (12, 2), (2, 12), (12, 12)]  # no turbines can be placed in these cells
+# dead_cells = [(2, 2), (12, 2), (2, 12), (12, 12)]
 # calculate_lower_bound = calculate_bound_geometric
 
 # Uncomment this block for test case 5
