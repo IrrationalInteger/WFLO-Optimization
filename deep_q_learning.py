@@ -130,7 +130,7 @@ agent = DQNAgent(state_size, action_size)
 
 # Training parameters
 batch_size = 32
-episodes = 40
+episodes = 150
 steps_per_episode = 300
 all_rewards = []
 all_losses = []
