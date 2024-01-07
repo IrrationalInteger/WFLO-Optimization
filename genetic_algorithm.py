@@ -61,7 +61,7 @@ def generate_neighbour_solution(solution, exclusion_list, m_inner, n_inner, num_
             solution.pop(random.randint(0, len(solution) - 1))
             add_new_WT(solution, exclusion_list, m_inner, n_inner)
     else:  # op = 2, remove a random WT
-        max_iterations = min_inner(num_of_genes, len(solution) - 1)
+        max_iterations = min(num_of_genes, len(solution) - 1)
         for _ in range(max_iterations):
             solution.pop(random.randint(0, len(solution) - 1))
     return solution
@@ -139,8 +139,8 @@ def uniform_crossover(parents_pair, lookup_table_dead_space_offset):
     child2_error = []
     lookup_table_1 = [[0 for _ in range(n)] for _ in range(m)]
     lookup_table_2 = [[0 for _ in range(n)] for _ in range(m)]
-    parent_min_length = min_inner(len(parent1), len(parent2))
-    parent_max_length = max_inner(len(parent1), len(parent2))
+    parent_min_length = min(len(parent1), len(parent2))
+    parent_max_length = max(len(parent1), len(parent2))
     swap = [random.randint(0, 1) for _ in range(parent_max_length)]
 
     def add_dead_space(cell_inner, lookup_table):
