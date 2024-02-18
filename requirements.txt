@@ -1,0 +1,5 @@
+numpy~=1.26.2
+gymnasium~=0.29.1
+keras~=2.15.0
+matplotlib~=3.8.2
+pygame~=2.5.2
